@@ -74,15 +74,15 @@ void RtMidi :: getCompiledApi( std::vector<RtMidi::Api> &apis ) throw()
 void RtMidi :: error( RtError::Type type, std::string errorString )
 {
   if (type == RtError::WARNING) {
-    /*std::cerr << '\n' << errorString << "\n\n";*/
+    std::cerr << "\n" << errorString << "\n\n";
   }
   else if (type == RtError::DEBUG_WARNING) {
 #if defined(__RTMIDI_DEBUG__)
-    /*std::cerr << '\n' << errorString << "\n\n";*/
+    std::cerr << "\n" << errorString << "\n\n";
 #endif
   }
   else {
-    /*std::cerr << '\n' << errorString << "\n\n";*/
+    std::cerr << "\n" << errorString << "\n\n";
     throw RtError( errorString, type );
   }
 }

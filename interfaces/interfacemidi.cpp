@@ -43,30 +43,86 @@ InterfaceMidi::InterfaceMidi(QWidget *parent) :
     portInName  = "To IanniX";
 
     try {
-        portOut.insert(getPortName(portOutName), new RtMidiOut(RtMidi::UNSPECIFIED, portOutName.toStdString()));
-        portIn .insert(getPortName(portInName),  new RtMidiIn (RtMidi::UNSPECIFIED, portInName .toStdString()));
+        RtMidiOut *newPortOut = new RtMidiOut(RtMidi::UNSPECIFIED, portOutName.toStdString());
+        RtMidiIn  *newPortIn  = new RtMidiIn (RtMidi::UNSPECIFIED, portInName .toStdString());
 
 #if !defined(__LINUX_ALSASEQ__) && !defined(__MACOSX_CORE__)
-        if (portOut.value(getPortName(portOutName))->getPortCount() == 0)
-            portOut.remove(getPortName(portOutName));
-        if (portIn .value(getPortName(portInName)) ->getPortCount() == 0)
-            portIn.remove(getPortName(portInName));
-        if(ui->aliasPort->findText(portOutName) < 0)
-            ui->aliasPort->addItem(portOutName);
+        if (newPortOut->getPortCount() == 0) {
+            delete newPortOut;
+            qDebug("[MIDI] No output ports available on Windows, virtual port not created");
+        } else {
+            portOut.insert(getPortName(portOutName), newPortOut);
+            if(ui->aliasPort->findText(portOutName) < 0)
+                ui->aliasPort->addItem(portOutName);
+        }
+        if (newPortIn->getPortCount() == 0) {
+            delete newPortIn;
+            qDebug("[MIDI] No input ports available on Windows, virtual port not created");
+        } else {
+            portIn.insert(getPortName(portInName), newPortIn);
+        }
 #endif
 #if defined(__LINUX_ALSASEQ__) || defined(__MACOSX_CORE__)
-        if(portOut.value(getPortName(portOutName)) != 0)
-            portOut.value(getPortName(portOutName))->openVirtualPort(portOutName.toStdString());
-        if(portIn .value(getPortName(portInName)) != 0)
-            portIn .value(getPortName(portInName)) ->openVirtualPort(portInName .toStdString());
-        if(ui->aliasPort->findText(portOutName) < 0)
-            ui->aliasPort->addItem(portOutName);
+        try {
+            newPortOut->openVirtualPort(portOutName.toStdString());
+            if(newPortOut->isPortOpen()) {
+                portOut.insert(getPortName(portOutName), newPortOut);
+                qDebug("[MIDI] Virtual output port opened: %s", qPrintable(portOutName));
+                if(ui->aliasPort->findText(portOutName) < 0)
+                    ui->aliasPort->addItem(portOutName);
+            } else {
+                delete newPortOut;
+                qDebug("[MIDI] Failed to open virtual output port: %s", qPrintable(portOutName));
+            }
+        } catch (RtError& virtErr) {
+            delete newPortOut;
+            qDebug("[MIDI] Error opening virtual output port %s: %s", qPrintable(portOutName), virtErr.getMessage().c_str());
+        }
+        
+        try {
+            newPortIn->openVirtualPort(portInName.toStdString());
+            if(newPortIn->isPortOpen()) {
+                portIn.insert(getPortName(portInName), newPortIn);
+                newPortIn->setCallback(&midiCallback, this);
+                newPortIn->ignoreTypes(true, false, true);
+                qDebug("[MIDI] Virtual input port opened: %s", qPrintable(portInName));
+            } else {
+                delete newPortIn;
+                qDebug("[MIDI] Failed to open virtual input port: %s", qPrintable(portInName));
+            }
+        } catch (RtError& virtErr) {
+            delete newPortIn;
+            qDebug("[MIDI] Error opening virtual input port %s: %s", qPrintable(portInName), virtErr.getMessage().c_str());
+        }
 #endif
-    } catch (RtError& err) {}
-    if(portIn.value(getPortName(portInName))) {
-        portIn.value(getPortName(portInName))->setCallback(&midiCallback, this);
-        portIn.value(getPortName(portInName))->ignoreTypes(true, false, true);
+    } catch (RtError& err) {
+        qDebug("[MIDI] Error during initialization: %s", err.getMessage().c_str());
     }
+    
+    // Set callback for virtual input port if it was created
+    if(portIn.contains(getPortName(portInName)) && portIn.value(getPortName(portInName))) {
+        RtMidiIn *virtualIn = portIn.value(getPortName(portInName));
+        if(virtualIn->isPortOpen()) {
+            virtualIn->setCallback(&midiCallback, this);
+            virtualIn->ignoreTypes(true, false, true);
+            qDebug("[MIDI] Callback set for virtual input port: %s", qPrintable(portInName));
+        }
+    }
+    
+    // Log available ports for diagnostics
+    qDebug("[MIDI] === Available MIDI Output Ports ===");
+    RtMidiOut *tempOut = new RtMidiOut();
+    for(unsigned int i = 0; i < tempOut->getPortCount(); i++) {
+        qDebug("[MIDI]   [%d] %s", i, tempOut->getPortName(i).c_str());
+    }
+    delete tempOut;
+    
+    qDebug("[MIDI] === Available MIDI Input Ports ===");
+    RtMidiIn *tempIn = new RtMidiIn();
+    for(unsigned int i = 0; i < tempIn->getPortCount(); i++) {
+        qDebug("[MIDI]   [%d] %s", i, tempIn->getPortName(i).c_str());
+    }
+    delete tempIn;
 
     //Interfaces link
     enable          .setAction(ui->enable,                       "interfaceMidiEnable");
@@ -99,13 +155,27 @@ void InterfaceMidi::timerEvent(QTimerEvent*) {
         try {
             QString portName = getPortNameStd(portListIn->getPortName(portListInIndex));
             if((!portIn.contains(getPortName(portName))) && (portName != portOutName) && (!portName.toLower().contains("iannix"))) {
-                portIn.insert(getPortName(portName), new RtMidiIn());
-                portIn.value(getPortName(portName))->openPort(portListInIndex);
-                portIn.value(getPortName(portName))->setCallback(&midiCallback, this);
-                portIn.value(getPortName(portName))->ignoreTypes(true, true, true);
+                RtMidiIn *newPortIn = new RtMidiIn();
+                try {
+                    newPortIn->openPort(portListInIndex);
+                    if(newPortIn->isPortOpen()) {
+                        newPortIn->setCallback(&midiCallback, this);
+                        newPortIn->ignoreTypes(true, true, true);
+                        portIn.insert(getPortName(portName), newPortIn);
+                        qDebug("[MIDI] Successfully opened input port: %s (index: %d)", qPrintable(portName), portListInIndex);
+                    } else {
+                        delete newPortIn;
+                        qDebug("[MIDI] Failed to open input port: %s", qPrintable(portName));
+                    }
+                } catch(RtError &portErr) {
+                    delete newPortIn;
+                    qDebug("[MIDI] Error opening input port %s: %s", qPrintable(portName), portErr.getMessage().c_str());
+                }
             }
         }
-        catch(RtError &err) {}
+        catch(RtError &err) {
+            qDebug("[MIDI] Error enumerating input ports: %s", err.getMessage().c_str());
+        }
     }
     delete portListIn;
 
@@ -120,11 +190,26 @@ void InterfaceMidi::timerEvent(QTimerEvent*) {
             if((!portOut.contains(getPortName(portName))) && (portName != portInName) && (!portName.toLower().contains("iannix"))) {
                 if(ui->aliasPort->findText(portName) < 0)
                     ui->aliasPort->addItem(portName);
-                portOut.insert(getPortName(portName), new RtMidiOut());
-                portOut.value(getPortName(portName))->openPort(portListOutIndex);
+                
+                RtMidiOut *newPort = new RtMidiOut();
+                try {
+                    newPort->openPort(portListOutIndex);
+                    if(newPort->isPortOpen()) {
+                        portOut.insert(getPortName(portName), newPort);
+                        qDebug("[MIDI] Successfully opened output port: %s (index: %d)", qPrintable(portName), portListOutIndex);
+                    } else {
+                        delete newPort;
+                        qDebug("[MIDI] Failed to open output port: %s", qPrintable(portName));
+                    }
+                } catch(RtError &portErr) {
+                    delete newPort;
+                    qDebug("[MIDI] Error opening output port %s: %s", qPrintable(portName), portErr.getMessage().c_str());
+                }
             }
         }
-        catch(RtError &err) {}
+        catch(RtError &err) {
+            qDebug("[MIDI] Error enumerating output ports: %s", err.getMessage().c_str());
+        }
     }
     delete portListOut;
 
@@ -142,6 +227,10 @@ bool InterfaceMidi::send(const Message &_message, QStringList *messageSent) {
     quint8 channel   = qBound(1, (int)message.getMidiValue(0), 16);
     QString portname = message.getMidiPort();
     QString command  = message.getMidiCommand().toLower();
+    
+    // Apply alias if port name matches the alias key
+    if(MessageManager::aliases.contains("midi_out"))
+        portname = MessageManager::aliases["midi_out"];
 
     //Send request
     if(command == "/notef") {
@@ -193,10 +282,22 @@ void InterfaceMidi::sendNote(const QString & portname, quint8 channel, qreal _no
     message.push_back(note & MASK_SAFETY);
     message.push_back(velocity & MASK_SAFETY);
 
-    if((message.size() > 0) && (portOut.contains(portname))) {
-        try {
-            portOut.value(portname)->sendMessage(&message);
-        } catch (RtError& err) { }
+    // Normalize port name for lookup
+    QString normalizedPort = getPortName(portname);
+    
+    if((message.size() > 0) && (portOut.contains(normalizedPort))) {
+        RtMidiOut *port = portOut.value(normalizedPort);
+        if(port && port->isPortOpen()) {
+            try {
+                port->sendMessage(&message);
+            } catch (RtError& err) {
+                qDebug("[MIDI] Error sending note to %s: %s", qPrintable(portname), err.getMessage().c_str());
+            }
+        } else {
+            qDebug("[MIDI] Port %s not open for sending note", qPrintable(portname));
+        }
+    } else {
+        qDebug("[MIDI] Port %s not found in portOut (tried: %s)", qPrintable(portname), qPrintable(normalizedPort));
     }
 }
 void InterfaceMidi::sendCC(const QString & portname, quint8 channel, quint16 controller, qreal _value) {
@@ -211,10 +312,22 @@ void InterfaceMidi::sendCC(const QString & portname, quint8 channel, quint16 con
     message.push_back(controller & MASK_SAFETY);
     message.push_back(value & MASK_SAFETY);
 
-    if((message.size() > 0) && (portOut.contains(portname))) {
-        try {
-            portOut.value(portname)->sendMessage(&message);
-        } catch (RtError& err) { }
+    // Normalize port name for lookup
+    QString normalizedPort = getPortName(portname);
+    
+    if((message.size() > 0) && (portOut.contains(normalizedPort))) {
+        RtMidiOut *port = portOut.value(normalizedPort);
+        if(port && port->isPortOpen()) {
+            try {
+                port->sendMessage(&message);
+            } catch (RtError& err) {
+                qDebug("[MIDI] Error sending CC to %s: %s", qPrintable(portname), err.getMessage().c_str());
+            }
+        } else {
+            qDebug("[MIDI] Port %s not open for sending CC", qPrintable(portname));
+        }
+    } else {
+        qDebug("[MIDI] Port %s not found in portOut (tried: %s)", qPrintable(portname), qPrintable(normalizedPort));
     }
 }
 void InterfaceMidi::sendPGM(const QString & portname, quint8 channel, quint16 program) {
@@ -225,10 +338,22 @@ void InterfaceMidi::sendPGM(const QString & portname, quint8 channel, quint16 pr
     message.push_back(STATUS_PROGRAM + ((channel-1) & MASK_CHANNEL));
     message.push_back(program & MASK_SAFETY);
 
-    if((message.size() > 0) && (portOut.contains(portname))) {
-        try {
-            portOut.value(portname)->sendMessage(&message);
-        } catch (RtError& err) {  }
+    // Normalize port name for lookup
+    QString normalizedPort = getPortName(portname);
+    
+    if((message.size() > 0) && (portOut.contains(normalizedPort))) {
+        RtMidiOut *port = portOut.value(normalizedPort);
+        if(port && port->isPortOpen()) {
+            try {
+                port->sendMessage(&message);
+            } catch (RtError& err) {
+                qDebug("[MIDI] Error sending PGM to %s: %s", qPrintable(portname), err.getMessage().c_str());
+            }
+        } else {
+            qDebug("[MIDI] Port %s not open for sending PGM", qPrintable(portname));
+        }
+    } else {
+        qDebug("[MIDI] Port %s not found in portOut (tried: %s)", qPrintable(portname), qPrintable(normalizedPort));
     }
 }
 void InterfaceMidi::sendBend(const QString & portname, quint8 channel, qreal _bendvalue) {
@@ -244,10 +369,22 @@ void InterfaceMidi::sendBend(const QString & portname, quint8 channel, qreal _be
     message.push_back(lsb & MASK_SAFETY);
     message.push_back(msb & MASK_SAFETY);
 
-    if((message.size() > 0) && (portOut.contains(portname))) {
-        try {
-            portOut.value(portname)->sendMessage(&message);
-        } catch (RtError& err) { }
+    // Normalize port name for lookup
+    QString normalizedPort = getPortName(portname);
+    
+    if((message.size() > 0) && (portOut.contains(normalizedPort))) {
+        RtMidiOut *port = portOut.value(normalizedPort);
+        if(port && port->isPortOpen()) {
+            try {
+                port->sendMessage(&message);
+            } catch (RtError& err) {
+                qDebug("[MIDI] Error sending Bend to %s: %s", qPrintable(portname), err.getMessage().c_str());
+            }
+        } else {
+            qDebug("[MIDI] Port %s not open for sending Bend", qPrintable(portname));
+        }
+    } else {
+        qDebug("[MIDI] Port %s not found in portOut (tried: %s)", qPrintable(portname), qPrintable(normalizedPort));
     }
 }
 void InterfaceMidi::networkSynchro(bool start) {
@@ -266,9 +403,12 @@ void InterfaceMidi::sendSPPStart() {
     message.push_back(MIDI_CONTINUE);
     if(message.size() > 0) {
         foreach(RtMidiOut *port, portOut) {
-            try {
-                port->sendMessage(&message);
-            } catch (RtError& err) {
+            if(port && port->isPortOpen()) {
+                try {
+                    port->sendMessage(&message);
+                } catch (RtError& err) {
+                    qDebug("[MIDI] Error sending SPP Start: %s", err.getMessage().c_str());
+                }
             }
         }
     }
@@ -278,9 +418,12 @@ void InterfaceMidi::sendSPPStop() {
     message.push_back(MIDI_STOP);
     if(message.size() > 0) {
         foreach(RtMidiOut *port, portOut) {
-            try {
-                port->sendMessage(&message);
-            } catch (RtError& err) {
+            if(port && port->isPortOpen()) {
+                try {
+                    port->sendMessage(&message);
+                } catch (RtError& err) {
+                    qDebug("[MIDI] Error sending SPP Stop: %s", err.getMessage().c_str());
+                }
             }
         }
     }
@@ -295,9 +438,12 @@ void InterfaceMidi::sendSPPTime(qreal time) {
     message.push_back(val2);
     if(message.size() > 0) {
         foreach(RtMidiOut *port, portOut) {
-            try {
-                port->sendMessage(&message);
-            } catch (RtError& err) {
+            if(port && port->isPortOpen()) {
+                try {
+                    port->sendMessage(&message);
+                } catch (RtError& err) {
+                    qDebug("[MIDI] Error sending SPP Time: %s", err.getMessage().c_str());
+                }
             }
         }
     }
@@ -410,13 +556,29 @@ qreal ExtMidiMTC::decode(quint16 msg) {
 
 void InterfaceMidi::clear() {
     foreach(RtMidiIn  *port, portIn) {
-        port->closePort();
-        delete port;
+        if(port) {
+            try {
+                if(port->isPortOpen())
+                    port->closePort();
+                delete port;
+            } catch (RtError& err) {
+                qDebug("[MIDI] Error closing input port: %s", err.getMessage().c_str());
+                delete port;
+            }
+        }
     }
     portIn.clear();
     foreach(RtMidiOut *port, portOut) {
-        port->closePort();
-        delete port;
+        if(port) {
+            try {
+                if(port->isPortOpen())
+                    port->closePort();
+                delete port;
+            } catch (RtError& err) {
+                qDebug("[MIDI] Error closing output port: %s", err.getMessage().c_str());
+                delete port;
+            }
+        }
     }
     portOut.clear();
 }
