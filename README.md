@@ -1,5 +1,7 @@
 dIanniX
 =======
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/969e7860-9641-43fe-9673-bb4b82cc94f1" />
+
 
 A modernized fork of IanniX with enhanced MIDI support and PipeWire compatibility.
 
