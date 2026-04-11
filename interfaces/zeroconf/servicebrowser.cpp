@@ -51,6 +51,7 @@
 
 #include <QtCore/QAtomicPointer>
 #include <QtCore/QCoreApplication>
+#include <QtCore/QDebug>
 #include <QtCore/QGlobalStatic>
 #include <QtCore/QMetaType>
 #include <QtCore/QMutexLocker>
@@ -137,7 +138,7 @@ private:
 
 Q_GLOBAL_STATIC(ZeroConfLib, zeroConfLibInstance)
 
-ZeroConfLib::ZeroConfLib(): m_lock(QMutex::Recursive),
+ZeroConfLib::ZeroConfLib():
     m_defaultLib(ZConfLib::createAvahiLib(QLatin1String("avahi-client"),
                  ZConfLib::createNativeLib(QLatin1String("dns_sd"),
                  ZConfLib::createEmbeddedLib(QString("mdnssd"), 0))))
@@ -1175,7 +1176,7 @@ void MainConnection::stop(bool wait)
 }
 
 MainConnection::MainConnection():
-    lib(zeroConfLibInstance()->defaultLib()), m_lock(QMutex::Recursive), m_mainRef(0), m_failed(false), m_status(Starting), m_nErrs(0)
+    lib(zeroConfLibInstance()->defaultLib()), m_mainRef(0), m_failed(false), m_status(Starting), m_nErrs(0)
 {
     if (lib == 0){
         qDebug() << "could not load a valid library for ZeroConf::MainConnection, failing";

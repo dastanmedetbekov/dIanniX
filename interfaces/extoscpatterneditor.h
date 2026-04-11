@@ -68,6 +68,9 @@ public:
     explicit ExtOscPatternEditor(QWidget *parent);
     ~ExtOscPatternEditor();
 
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 private:
     bool textLock, itemLock;
     QList< QPair<QComboBoxWithFocus*, QPair<QLabel*, QPushButton* > > > trees;
@@ -82,7 +85,8 @@ public:
     void setCurrentItem(QComboBox *combo, QLabel *label, const QString &value, bool forceVisible = true);
     QString getItem(QComboBox *combo, const QString &valDefault, const QString &prefix = "") const;
     QString getItem(QComboBox *combo, qint32 valDefault) const;
-    void addTemplate(QString text, bool enabled = false);
+    void addTemplate(QString text, bool enabled = false, const QString &payload = QString());
+    void reloadTemplates(const QString &preferredSelection = QString());
 
 signals:
     void actionRouteRemove(ExtOscPatternEditor*);

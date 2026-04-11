@@ -25,7 +25,11 @@
 #define TRANSPORT_H
 
 #include <QWidget>
+#ifdef QT6
+#include <QElapsedTimer>
+#else
 #include <QTime>
+#endif
 #include <QProcess>
 #include <QThread>
 #include <QCoreApplication>
@@ -84,7 +88,11 @@ public:
     static qreal perfOpenGLRefreshTime,    perfOpenGLCounterTime;
     static QString timeLocalStr;
     static qreal renderMeasureAbsoluteValOld;
+#ifdef QT6
+    static QElapsedTimer renderMeasureAbsolute;
+#else
     static QTime renderMeasureAbsolute;
+#endif
     static bool forceTimeLocal;
     static qreal perfCpu, perfMem;
     static UiBool timerOk;
@@ -129,12 +137,12 @@ public:
         return QString("%1 %2 %3").arg(Render::rotationDest.x()).arg(Render::rotationDest.y()).arg(Render::rotationDest.z());
     }
     inline void setCenterStr(const QString & pos) {
-        QStringList posItems = pos.split(" ", QString::SkipEmptyParts);
+        QStringList posItems = pos.split(" ", Qt::SkipEmptyParts);
         if(posItems.count() > 1)
             Application::render->centerOn(NxPoint(posItems.at(0).toDouble(), posItems.at(1).toDouble()));
     }
     inline void setRotateStr(const QString & pos) {
-        QStringList posItems = pos.split(" ", QString::SkipEmptyParts);
+        QStringList posItems = pos.split(" ", Qt::SkipEmptyParts);
         if(posItems.count() > 5)
             Application::render->rotateTo(NxPoint(posItems.at(0).toDouble(), posItems.at(1).toDouble(), posItems.at(2).toDouble()), NxPoint(posItems.at(3).toDouble(), posItems.at(4).toDouble(), posItems.at(5).toDouble()));
         else if(posItems.count() > 2)

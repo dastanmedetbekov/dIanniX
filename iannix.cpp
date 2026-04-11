@@ -22,6 +22,8 @@
 */
 
 #include "iannix.h"
+#include <QGuiApplication>
+#include <QScreen>
 
 IanniX::IanniX(const QString &_projectToLoad, QObject *parent) :
     ApplicationCurrent(parent) {
@@ -34,9 +36,9 @@ IanniX::IanniX(const QString &_projectToLoad, QObject *parent) :
     NxObject::widgetIconSoloOff   = QIcon(":gui/res_icon_check_solo_off.png");
     NxObject::widgetIconSoloOn    = QIcon(":gui/res_icon_check_solo_on.png");
 
-#ifdef QT5
-    OpenGlDrawing::dpi = QWindow().devicePixelRatio();
-#endif
+    if (QGuiApplication *app = qobject_cast<QGuiApplication*>(QCoreApplication::instance()))
+        if (QScreen *screen = app->primaryScreen())
+            OpenGlDrawing::dpi = screen->devicePixelRatio();
     Render::textures   = new UiTextureItems();
     Render::colors     = new UiColorItems();
 #ifdef Q_OS_MAC
@@ -92,6 +94,7 @@ IanniX::IanniX(const QString &_projectToLoad, QObject *parent) :
     connect(transport, SIGNAL(forceOpenGLtimer(qreal)),             SLOT(forceOpenGLTimer(qreal)));
     connect(transport, SIGNAL(forceSchedulerTimer(qreal)),          SLOT(forceSchedulerTimer(qreal)));
     connect(Transport::editor, SIGNAL(askSave()),    SLOT(actionSaveAndReload()));
+    connect(Transport::editor, SIGNAL(askLiveReload()), SLOT(actionSaveAndReload()));
     //connect(Transport::editor, SIGNAL(askSave()),    SLOT(actionReloadScript()));
     connect(Transport::editor, SIGNAL(askRefresh()), SLOT(actionRefresh()));
 
@@ -135,7 +138,7 @@ IanniX::IanniX(const QString &_projectToLoad, QObject *parent) :
     inspector->addInterfaces();
 
     //Message script engine
-    QScriptValue messageScript = messageScriptEngine.globalObject();
+    QJSValue messageScript = messageScriptEngine.globalObject();
     messageScript = messageScriptEngine.evaluate(NxDocument::loadLibrary());
 
     //Special objects
@@ -165,11 +168,15 @@ IanniX::IanniX(const QString &_projectToLoad, QObject *parent) :
     //Global settings creation if needed
     globalSettings = new QSettings();
     if((globalSettings) && (!globalSettings->childKeys().contains("id"))) {
-        qsrand(QDateTime::currentDateTime().toTime_t());
+#ifdef QT6
+        updateAnonymousId = QString::number(QRandomGenerator::global()->generate());
+#else
+        qsrand(QDateTime::currentDateTime().toSecsSinceEpoch());
         updateAnonymousId = QString::number(qrand());
+#endif
         globalSettings->setValue("id", updateAnonymousId);
         globalSettings->setValue("updatePeriod", 1);
-        globalSettings->setValue("lastUpdate",   QDateTime(QDate(2000, 01, 01)));
+        globalSettings->setValue("lastUpdate",   QDateTime(QDate(2000, 1, 1), QTime()));
     }
     //Local settings creation if needed
     QString settingsFilename = Application::pathDocuments.absoluteFilePath() + "/Settings.ini";
@@ -211,6 +218,14 @@ IanniX::IanniX(const QString &_projectToLoad, QObject *parent) :
         foreach(const QString &settingsKey, settingsKeys)
             Render::colors->insert(settingsKey, iniSettings->value(settingsKey).value<QColor>());
         iniSettings->endGroup();
+
+        // Restore last opened score when app starts without explicit file argument.
+        if(projectToLoad.isEmpty()) {
+            QString lastProject = iniSettings->value("lastProject").toString();
+            QFileInfo lastProjectFile(lastProject);
+            if(lastProjectFile.exists() && lastProjectFile.isFile())
+                projectToLoad = lastProjectFile.absoluteFilePath();
+        }
     }
     Render::colors->update();
 
@@ -226,8 +241,8 @@ IanniX::IanniX(const QString &_projectToLoad, QObject *parent) :
     }
 
     //Apply specials settings
-    ((NxTrigger*)MessageManager::transportObject)->setMessagePatterns("1," + Application::defaultMessageTransport);
-    ((NxTrigger*)MessageManager::syncObject)     ->setMessagePatterns("1," + Application::defaultMessageSync);
+    static_cast<NxTrigger*>(MessageManager::transportObject)->setMessagePatterns("1," + Application::defaultMessageTransport);
+    static_cast<NxTrigger*>(MessageManager::syncObject)     ->setMessagePatterns("1," + Application::defaultMessageSync);
 
     //Scheduler
     timer = new QTimer(this);
@@ -241,6 +256,19 @@ IanniX::IanniX(const QString &_projectToLoad, QObject *parent) :
 
     if(Application::current)
         Application::current->readyToStart();
+}
+
+IanniX::~IanniX() {
+    delete globalSettings;
+    delete iniSettings;
+    MessageManager::deleteNetworkInterface();
+    delete view;
+#ifdef WACOM_INSTALLED
+    delete wacom;
+#endif
+#ifdef KINECT_INSTALLED
+    delete kinect;
+#endif
 }
 
 void IanniX::readyToStart() {
@@ -285,7 +313,7 @@ void IanniX::actionImportSVG(const QDomElement &xmlElement, qreal scale) {
             render->selectionAdd(getCurrentDocument()->getObject(id));
         }
         else if((!xmlData.isNull()) && (xmlData.tagName() == "polyline")) {
-            quint16 id = execute(QString(COMMAND_ADD) + " curve auto", ExecuteSourceGui).toUInt();;
+            quint16 id = execute(QString(COMMAND_ADD) + " curve auto", ExecuteSourceGui).toUInt();
             execute(QString(COMMAND_CURVE_LINES) + " " + QString::number(id) + " " + QString::number(scale) + " " + xmlData.attribute("points"), ExecuteSourceGui);
             render->selectionAdd(getCurrentDocument()->getObject(id));
         }
@@ -333,7 +361,14 @@ void IanniX::setScheduler(SchedulerActivity _schedulerActivity) {
     if(schedulerActivity != SchedulerOff) {
         Transport::timerOk = true;
         Transport::renderMeasureAbsoluteValOld = 0;
+#ifdef QT6
+        if(!Transport::renderMeasureAbsolute.isValid())
+            Transport::renderMeasureAbsolute.start();
+        else
+            Transport::renderMeasureAbsolute.restart();
+#else
         Transport::renderMeasureAbsolute.start();
+#endif
     }
     else
         Transport::timerOk = false;
@@ -363,7 +398,11 @@ void IanniX::timerTick() {
 void IanniX::timerTick(bool force) {
     interfaceOsc->parseOSC();
 
+#ifdef QT6
+    qreal renderMeasureAbsoluteVal = Transport::renderMeasureAbsolute.elapsed() / 1000.0;
+#else
     qreal renderMeasureAbsoluteVal = Transport::renderMeasureAbsolute.elapsed() / 1000.0F;
+#endif
     qreal delta = renderMeasureAbsoluteVal - Transport::renderMeasureAbsoluteValOld;
     Transport::renderMeasureAbsoluteValOld = renderMeasureAbsoluteVal;
 
@@ -410,7 +449,7 @@ void IanniX::timerTick(qreal delta) {
                     QHashIterator<quint16, NxObject*> cursorIterator(group->objects[activityIterator][ObjectsTypeCursor]);
                     while (cursorIterator.hasNext()) {
                         cursorIterator.next();
-                        NxCursor *cursor = (NxCursor*)cursorIterator.value();
+                        NxCursor *cursor = static_cast<NxCursor*>(cursorIterator.value());
                         NxCurve  *curve  = cursor->getCurve();
 
                         //Calculate curve
@@ -443,7 +482,7 @@ void IanniX::timerTick(qreal delta) {
 }
 
 void IanniX::timerTrig(void *object, bool force) {
-    NxCursor *cursor = (NxCursor*)object;
+    NxCursor *cursor = static_cast<NxCursor*>(object);
 
     //Messages
     if((!Application::allowPlaySelected) || (!render->isSelection()) || ((Application::allowPlaySelected) && (cursor->getSelected())))
@@ -464,7 +503,7 @@ void IanniX::timerTrig(void *object, bool force) {
                     QHashIterator<quint16, NxObject*> triggerIterator(group->objects[ObjectsActivityActive][ObjectsTypeTrigger]);
                     while (triggerIterator.hasNext()) {
                         triggerIterator.next();
-                        NxTrigger *trigger = (NxTrigger*)triggerIterator.value();
+                        NxTrigger *trigger = static_cast<NxTrigger*>(triggerIterator.value());
 
                         //Check the collision
                         if((cursor->contains(trigger)) && (((!isObjectSoloActive) && (trigger->isNotMuted())) || ((isObjectSoloActive) && (trigger->isSolo()))) && ((!Application::allowPlaySelected) || (!render->isSelection()) || ((Application::allowPlaySelected) && (trigger->getSelected()))))
@@ -476,11 +515,11 @@ void IanniX::timerTrig(void *object, bool force) {
                         QHashIterator<quint16, NxObject*> curveIterator(group->objects[ObjectsActivityActive][ObjectsTypeCurve]);
                         while (curveIterator.hasNext()) {
                             curveIterator.next();
-                            NxCurve *objectCurve = (NxCurve*)curveIterator.value();
+                            NxCurve *objectCurve = static_cast<NxCurve*>(curveIterator.value());
 
                             //Check the collision
                             if((!Application::allowPlaySelected) || (!render->isSelection()) || ((Application::allowPlaySelected) && (objectCurve->getSelected())))
-                                cursor->trig((NxCurve*)objectCurve);
+                                cursor->trig(static_cast<NxCurve*>(objectCurve));
                         }
 
                     }
@@ -494,7 +533,7 @@ void IanniX::timerTrig(void *object, bool force) {
 void IanniX::checkForUpdates() {
     updateManager = new QNetworkAccessManager(this);
     connect(updateManager, SIGNAL(finished(QNetworkReply*)), SLOT(checkForUpdatesFinished(QNetworkReply*)));
-    QString url = "http://www.iannix.org/download/updates.php?id=" + updateAnonymousId + "&package=" + (QCoreApplication::applicationName() + "__" + QCoreApplication::applicationVersion()).toLower().replace(" ", "_").replace(".", "_");
+    QString url = "https://www.iannix.org/download/updates.php?id=" + updateAnonymousId + "&package=" + (QCoreApplication::applicationName() + "__" + QCoreApplication::applicationVersion()).toLower().replace(" ", "_").replace(".", "_");
     qDebug("Checking for updates %s", qPrintable(url));
     updateManager->get(QNetworkRequest(QUrl(url, QUrl::TolerantMode)));
 }
@@ -508,7 +547,7 @@ void IanniX::checkForUpdatesFinished(QNetworkReply *reply) {
         if((info.length() > 0) || (forceUpdate)) {
             int rep = (new UiMessageBox())->display(tr("IanniX Update Center"), tr("A new version of IanniX is available"), info, tr("Would you like to update IanniX with the new version ?"), QPixmap(":/infos/res_info_update.png"), QDialogButtonBox::Yes | QDialogButtonBox::No);
             if(rep)
-                QDesktopServices::openUrl(QUrl("http://www.iannix.org/", QUrl::TolerantMode));
+                QDesktopServices::openUrl(QUrl("https://www.iannix.org/", QUrl::TolerantMode));
         }
     }
 }
@@ -552,8 +591,8 @@ void IanniX::forceOpenGLTimer(qreal val) {
 
 void IanniX::actionCC(QTreeWidgetItem *item, int col) {
     if((item) && (col)) {
-        if(item->text(0) == tr("GROUP")) ((NxGroup*)item) ->widgetClick(col);
-        else                             ((NxObject*)item)->widgetClick(col);
+        if(item->text(0) == tr("GROUP")) static_cast<NxGroup*>(item) ->widgetClick(col);
+        else                             static_cast<NxObject*>(item)->widgetClick(col);
     }
     if(col == 0) {
         QPair< QList<NxGroup*>, UiRenderSelection > elements = inspector->getSelectedCCObject();
@@ -616,7 +655,7 @@ void IanniX::actionCC(QTreeWidgetItem *item, int col) {
 void IanniX::currentDocumentChanged(UiSyncItem *item) {
     if(currentDocument)
         delete currentDocument;
-    setCurrentDocument(new NxDocument(this, (UiFileItem*)item));
+    setCurrentDocument(new NxDocument(this, static_cast<UiFileItem*>(item)));
     render->setDocument(getCurrentDocument());
     getCurrentDocument()->askFileOpen();
 }
@@ -646,6 +685,8 @@ void IanniX::loadProject(const QString & _projectFile) {
     if(projectFile.isDir())
         UiFileItem::syncWith(QFileInfoList() << QFileInfo(projectFile.absoluteFilePath() + "/"), inspector->getFileWidget()->getTree());
     else if(projectFile.isFile()) {
+        if(iniSettings)
+            iniSettings->setValue("lastProject", projectFile.absoluteFilePath());
         UiFileItem::syncWith(QFileInfoList() << QFileInfo(projectFile.absolutePath() + "/"), inspector->getFileWidget()->getTree());
         inspector->getFileWidget()->askImport(QStringList() << projectFile.absoluteFilePath());
         inspector->getFileWidget()->askOpen();
@@ -684,7 +725,7 @@ void IanniX::setObjectActivity(void *_object, quint8 activeOld) {
         return;
 
     //Extract object
-    NxObject *object = (NxObject*)_object;
+    NxObject *object = static_cast<NxObject*>(_object);
     NxGroup *group = addGroup(object->getGroupId());
 
     //Move object
@@ -697,7 +738,7 @@ void IanniX::setObjectGroupId(void *_object, const QString & groupIdOld) {
         return;
 
     //Extract object
-    NxObject *object = (NxObject*)_object;
+    NxObject *object = static_cast<NxObject*>(_object);
     NxGroup *group = addGroup(object->getGroupId());
 
     //Move object
@@ -717,7 +758,7 @@ void IanniX::setObjectGroupId(void *_object, const QString & groupIdOld) {
 void IanniX::setObjectId(void *_object, quint16 idOld) {
     //Extract object
     NxDocument *document = getWorkingDocument();
-    NxObject *object = (NxObject*)_object;
+    NxObject *object = static_cast<NxObject*>(_object);
     NxGroup *group = addGroup(object->getGroupId());
 
     //Move object
@@ -805,13 +846,16 @@ const QVariant IanniX::execute(const QString &command, ExecuteSource source, boo
     NxObjectDispatchProperty::source = source;
     NxDocument *document = getWorkingDocument();
 
-    QStringList argv = command.split(" ", QString::SkipEmptyParts);
+    QStringList argv = command.split(" ", Qt::SkipEmptyParts);
     quint16 argc = argv.count();
     if(argc > 0) {
         QString commande = argv.at(0).toLower();
         if((argc > 2) && (commande == COMMAND_ADD)) {
             bool ok = false;
-            qint16 id = argv.at(2).toUInt(&ok);
+            QString idToken = argv.at(2).trimmed();
+            if((idToken.startsWith("<")) && (idToken.endsWith(">")) && (idToken.length() > 2))
+                idToken = idToken.mid(1, idToken.length() - 2).trimmed();
+            qint16 id = idToken.toUInt(&ok);
             NxObject *parentObject = 0;
             if(ok) {
                 parentObject = document->getObject(id);
@@ -1068,9 +1112,7 @@ const QVariant IanniX::execute(const QString &command, ExecuteSource source, boo
                 return Transport::timeLocal;
             }
             else if((commande == COMMAND_SLEEP) && (argc > 1)) {
-                QMutex mutex;
-                QWaitCondition sleep;
-                sleep.wait(&mutex, argvDouble(argv, 1));
+                QThread::msleep(static_cast<unsigned long>(argvDouble(argv, 1)));
             }
             else if(commande == COMMAND_CLEAR) {
                 document->pushSnapshot();
@@ -1095,6 +1137,17 @@ const QVariant IanniX::execute(const QString &command, ExecuteSource source, boo
 
             // ---- OBJECT ORIENTED COMMANDS ----
             else if(argc > 1) {
+                if((commande == COMMAND_MESSAGE) && (argv.at(1).toLower() == "triggers")) {
+                    if(argc > 2) {
+                        const QString messageValue = argvFullString(command, argv, 2);
+                        foreach(NxGroup *group, document->groups)
+                            for(quint16 activityIterator = 0 ; activityIterator < ObjectsActivityLenght ; activityIterator++)
+                                foreach(NxObject *object, group->objects[activityIterator][ObjectsTypeTrigger])
+                                    object->dispatchProperty(COMMAND_MESSAGE, messageValue);
+                    }
+                    return true;
+                }
+
                 NxObjectDispatchProperty *object = getObject(argv.at(1));
 
                 if(object) {
@@ -1223,6 +1276,7 @@ void IanniX::openMessageEditor() {
 
 void IanniX::actionReloadScript() {
     setCurrentDocument(getCurrentDocument());
+    getCurrentDocument()->clear();
     getCurrentDocument()->open(false);
 }
 
@@ -1280,6 +1334,11 @@ void IanniX::actionCloseEvent(QCloseEvent *event) {
 
     //Save settings
     if(iniSettings) {
+        if(currentDocument) {
+            const QFileInfo currentProject = currentDocument->getScriptFile();
+            if(currentProject.exists() && currentProject.isFile())
+                iniSettings->setValue("lastProject", currentProject.absoluteFilePath());
+        }
         foreach(UiOption *option, UiOptions::options)
             iniSettings->setValue(option->settingName, option->variant());
         iniSettings->setValue("appVersion", QApplication::applicationVersion());

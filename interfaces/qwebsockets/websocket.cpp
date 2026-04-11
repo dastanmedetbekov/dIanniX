@@ -6,10 +6,11 @@
 #include <QByteArray>
 #include <QtEndian>
 #include <QCryptographicHash>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QStringList>
 #include <QHostAddress>
 #include <QNetworkProxy>
+#include <QRandomGenerator>
 
 #include <QDebug>
 
@@ -186,7 +187,6 @@ WebSocket::WebSocket(QString origin, WebSocketProtocol::Version version, QObject
 	m_dataProcessor()
 {
 	makeConnections(m_pSocket);
-	qsrand(static_cast<uint>(QDateTime::currentMSecsSinceEpoch()));
 }
 
 //only called by upgradeFrom
@@ -712,7 +712,7 @@ qint64 WebSocket::doWriteFrames(const QByteArray &data, bool isBinary)
  */
 quint32 WebSocket::generateRandomNumber() const
 {
-	return static_cast<quint32>((static_cast<double>(qrand()) / RAND_MAX) * std::numeric_limits<quint32>::max());
+	return QRandomGenerator::global()->generate();
 }
 
 /*!
@@ -807,21 +807,19 @@ void WebSocket::processHandshake(QTcpSocket *pSocket)
 	bool ok = false;
 	QString errorDescription;
 
-	const QString regExpStatusLine("^(HTTP/1.1)\\s([0-9]+)\\s(.*)");
-	const QRegExp regExp(regExpStatusLine);
+	const QRegularExpression regExp(QStringLiteral("^(HTTP/1.1)\\\\s([0-9]+)\\\\s(.*)"));
 	QString statusLine = readLine(pSocket);
 	QString httpProtocol;
 	int httpStatusCode;
 	QString httpStatusMessage;
-	if (regExp.indexIn(statusLine) != -1)
+	QRegularExpressionMatch statusMatch = regExp.match(statusLine);
+	if (statusMatch.hasMatch())
 	{
-		QStringList tokens = regExp.capturedTexts();
-		tokens.removeFirst();	//remove the search string
-		if (tokens.length() == 3)
+		httpProtocol = statusMatch.captured(1);
+		httpStatusCode = statusMatch.captured(2).toInt();
+		httpStatusMessage = statusMatch.captured(3).trimmed();
+		if (!httpProtocol.isEmpty())
 		{
-			httpProtocol = tokens[0];
-			httpStatusCode = tokens[1].toInt();
-			httpStatusMessage = tokens[2].trimmed();
 			ok = true;
 		}
 	}
@@ -835,8 +833,9 @@ void WebSocket::processHandshake(QTcpSocket *pSocket)
 		QMap<QString, QString> headers;
 		while (!headerLine.isEmpty())
 		{
-			QStringList headerField = headerLine.split(QString(": "), QString::SkipEmptyParts);
-			headers.insertMulti(headerField[0], headerField[1]);
+			QStringList headerField = headerLine.split(QString(": "), Qt::SkipEmptyParts);
+			if (headerField.size() >= 2)
+				headers.insert(headerField[0], headerField[1]);
 			headerLine = readLine(pSocket);
 		}
 
@@ -872,7 +871,7 @@ void WebSocket::processHandshake(QTcpSocket *pSocket)
 		{
 			if (!version.isEmpty())
 			{
-				QStringList versions = version.split(", ", QString::SkipEmptyParts);
+				QStringList versions = version.split(", ", Qt::SkipEmptyParts);
 				if (!versions.contains("13"))
 				{
 					//if needed to switch protocol version, then we are finished here
@@ -1033,15 +1032,7 @@ void WebSocket::processControlFrame(WebSocketProtocol::OpCode opCode, QByteArray
 				{
 					if (frame.size() > 2)
 					{
-						QTextCodec *tc = QTextCodec::codecForName("UTF-8");
-						QTextCodec::ConverterState state(QTextCodec::ConvertInvalidToNull);
-						closeReason = tc->toUnicode(frame.constData() + 2, frame.size() - 2, &state);
-						bool failed = (state.invalidChars != 0) || (state.remainingChars != 0);
-						if (failed)
-						{
-							closeCode = WebSocketProtocol::CC_WRONG_DATATYPE;
-							closeReason = "Invalid UTF-8 code encountered.";
-						}
+						closeReason = QString::fromUtf8(frame.constData() + 2, frame.size() - 2);
 					}
 				}
 			}

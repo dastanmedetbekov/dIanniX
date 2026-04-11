@@ -867,7 +867,7 @@ void JSEdit::resizeEvent(QResizeEvent *e)
 void JSEdit::wheelEvent(QWheelEvent *e)
 {
     if (e->modifiers() == Qt::ControlModifier) {
-        int steps = e->delta() / 20;
+        int steps = e->angleDelta().y() / 20;
         steps = qBound(-3, steps, 3);
         QFont textFont = font();
         int pointSize = textFont.pointSize() + steps;
@@ -979,11 +979,11 @@ void JSEdit::updateSidebar()
         int maxLines = blockCount();
         for (int number = 10; number < maxLines; number *= 10)
             ++digits;
-        sw += fontMetrics().width('w') * digits;
+        sw += fontMetrics().horizontalAdvance('w') * digits;
     }
     if (d->codeFolding) {
         int fh = fontMetrics().lineSpacing();
-        int fw = fontMetrics().width('w');
+        int fw = fontMetrics().horizontalAdvance('w');
         d->sidebar->foldIndicatorWidth = qMax(fw, fh);
         sw += d->sidebar->foldIndicatorWidth;
     }

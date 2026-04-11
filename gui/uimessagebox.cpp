@@ -56,7 +56,7 @@ qreal UiMessageBox::getDouble(const QString &title, const QString &description, 
     setUpdatesEnabled(true);
 
     show();
-    QRect screen = QApplication::desktop()->screenGeometry();
+    QRect screen = QGuiApplication::primaryScreen()->geometry();
     move(screen.center() - QPoint(200, 100));
 
     exec();
@@ -89,7 +89,7 @@ qreal UiMessageBox::getDouble(const QString &title, const QString &description, 
     setUpdatesEnabled(true);
 
     updateGeometry();
-    QRect screen = QApplication::desktop()->screenGeometry();
+    QRect screen = QGuiApplication::primaryScreen()->geometry();
     move(screen.center() - QPoint(200, 100));
 
     exec();
@@ -111,7 +111,7 @@ int UiMessageBox::display(const QString &title, const QString &description, QDia
     setUpdatesEnabled(true);
 
     updateGeometry();
-    QRect screen = QApplication::desktop()->screenGeometry();
+    QRect screen = QGuiApplication::primaryScreen()->geometry();
     move(screen.center() - QPoint(200, 100));
 
     exec();
@@ -132,7 +132,7 @@ void UiMessageBox::display(const QString &title, const QString &description) {
     setUpdatesEnabled(true);
 
     updateGeometry();
-    QRect screen = QApplication::desktop()->screenGeometry();
+    QRect screen = QGuiApplication::primaryScreen()->geometry();
     move(screen.center() - QPoint(200, 100));
     show();
     raise();
@@ -146,8 +146,11 @@ QString UiMessageBox::getText(const QString &title, const QString &description, 
     setUpdatesEnabled(true);
 
     updateGeometry();
-    QRect screen = QApplication::desktop()->screenGeometry();
-    move(screen.center() - QPoint(200, 100));
+    QScreen *screen = QGuiApplication::primaryScreen();
+    if(screen) {
+        QRect screenGeometry = screen->geometry();
+        move(screenGeometry.center() - QPoint(200, 100));
+    }
 
     exec();
     if(ok) {
@@ -175,7 +178,7 @@ int UiMessageBox::display(const QString &title, const QString &description1, con
     setUpdatesEnabled(true);
 
     updateGeometry();
-    QRect screen = QApplication::desktop()->screenGeometry();
+    QRect screen = QGuiApplication::primaryScreen()->geometry();
     move(screen.center() - QPoint(200, 300));
 
     exec();

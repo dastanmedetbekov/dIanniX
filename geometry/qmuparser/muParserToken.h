@@ -69,7 +69,7 @@ namespace mu
       TString m_strTok;   ///< Token string
       TString m_strVal;   ///< Value for string variables
       value_type m_fVal;  ///< the value
-      std::auto_ptr<ParserCallback> m_pCallback;
+      std::unique_ptr<ParserCallback> m_pCallback;
 
   public:
 
@@ -132,7 +132,7 @@ namespace mu
         m_iType = a_Tok.m_iType;
         m_fVal = a_Tok.m_fVal;
         // create new callback object if a_Tok has one
-        m_pCallback.reset(a_Tok.m_pCallback.get() ? a_Tok.m_pCallback->Clone() : 0);
+        m_pCallback.reset(a_Tok.m_pCallback.get() ? a_Tok.m_pCallback->Clone() : nullptr);
       }
 
       //------------------------------------------------------------------------------
@@ -194,7 +194,7 @@ namespace mu
         m_iIdx = -1;
 
         m_pTok = 0;
-        m_pCallback.reset(0);
+        m_pCallback.reset(nullptr);
 
         return *this;
       }
@@ -212,7 +212,7 @@ namespace mu
         m_strTok = a_strTok;
         m_iIdx = -1;
         m_pTok = (void*)a_pVar;
-        m_pCallback.reset(0);
+        m_pCallback.reset(nullptr);
         return *this;
       }
 
@@ -230,7 +230,7 @@ namespace mu
         m_iIdx = static_cast<int>(a_iSize);
 
         m_pTok = 0;
-        m_pCallback.reset(0);
+        m_pCallback.reset(nullptr);
         return *this;
       }
 
@@ -311,7 +311,7 @@ namespace mu
       //------------------------------------------------------------------------------
       EOprtAssociativity GetAssociativity() const
       {
-        if (m_pCallback.get()==NULL || m_pCallback->GetCode()!=cmOPRT_BIN)
+        if (m_pCallback.get() == nullptr || m_pCallback->GetCode()!=cmOPRT_BIN)
 	        throw ParserError(ecINTERNAL_ERROR);
 
         return m_pCallback->GetAssociativity();

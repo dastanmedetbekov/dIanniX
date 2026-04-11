@@ -24,13 +24,12 @@
 #ifndef UIRENDERPREVIEW_H
 #define UIRENDERPREVIEW_H
 
-#ifdef USE_GLWIDGET
+#if defined(QT6) || defined(USE_OPENGLWIDGET)
+#include <QOpenGLWidget>
+#include <QOpenGLFunctions>
+#else
 #include <QGLWidget>
 #include <QGLFormat>
-#else
-#include <QOpenGLWidget>
-#include <QGLWidget>
-#include <QOpenGLFunctions>
 #endif
 
 class NxEventsPropagation {
@@ -43,10 +42,14 @@ public:
     virtual void keyPressEvent(QKeyEvent *)            {}
 };
 
-#ifdef QT4
-class UiRenderPreview : public QGLWidget {
-#else
+#ifdef QT6
 class UiRenderPreview : public QOpenGLWidget {
+#else
+#ifdef USE_OPENGLWIDGET
+class UiRenderPreview : public QOpenGLWidget {
+#else
+class UiRenderPreview : public QGLWidget {
+#endif
 #endif
     Q_OBJECT
 

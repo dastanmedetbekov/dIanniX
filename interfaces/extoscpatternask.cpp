@@ -28,6 +28,8 @@ ExtOscPatternAsk::ExtOscPatternAsk(QWidget *parent, QList<NxObject *> *_objects)
     QDialog(parent),
     ui(new Ui::ExtOscPatternAsk) {
     ui->setupUi(this);
+    appliedToAllTriggers = false;
+    connect(ui->applyAllTriggersButton, SIGNAL(clicked()), SLOT(actionApplyToAllTriggers()));
     objects = _objects;
     QStringList messagePatterns;
     onlyCurves = true;
@@ -59,7 +61,7 @@ ExtOscPatternAsk::ExtOscPatternAsk(QWidget *parent, QList<NxObject *> *_objects)
     if(ui->tabs->count())
         ui->tabs->setCurrentIndex(0);
 
-    QRect screen = QApplication::desktop()->screenGeometry();
+    QRect screen = QGuiApplication::primaryScreen()->geometry();
     move(screen.center() - rect().center());
 }
 
@@ -126,6 +128,32 @@ void ExtOscPatternAsk::actionRemoveMessage() {
         else
             ui->removeButton->setVisible(false);
     }
+}
+
+void ExtOscPatternAsk::actionApplyToAllTriggers() {
+    const QString patterns = getMessagePatterns();
+
+    Application::current->pushSnapshot();
+
+    // Primary path through global selector.
+    if(patterns.length())
+        Application::current->execute(QString("%1 triggers %2").arg(COMMAND_MESSAGE).arg(patterns), ExecuteSourceGui);
+    else
+        Application::current->execute(QString("%1 triggers -").arg(COMMAND_MESSAGE), ExecuteSourceGui);
+
+    // Fallback path: apply directly to each trigger id (defensive compatibility).
+    for(quint16 id = 0 ; id < 32767 ; id++) {
+        NxObject *object = (NxObject*)Application::current->getObjectById(id);
+        if((object) && (object->getType() == ObjectsTypeTrigger)) {
+            if(patterns.length())
+                Application::current->execute(QString("%1 %2 %3").arg(COMMAND_MESSAGE).arg(id).arg(patterns), ExecuteSourceGui);
+            else
+                Application::current->execute(QString("%1 %2 -").arg(COMMAND_MESSAGE).arg(id), ExecuteSourceGui);
+        }
+    }
+
+    appliedToAllTriggers = true;
+    accept();
 }
 
 void ExtOscPatternAsk::actionFieldFocus(QComboBox *combo, QPlainTextEdit *plaintext) {

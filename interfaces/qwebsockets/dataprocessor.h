@@ -4,7 +4,11 @@
 #include <QObject>
 #include <QByteArray>
 #include <QString>
+#ifdef QT6
+#include <QtCore/QStringConverter>
+#else
 #include <QTextCodec>
+#endif
 #include "websocketprotocol.h"
 
 class QTcpSocket;
@@ -53,8 +57,12 @@ private:
 	QByteArray m_binaryMessage;
 	QString m_textMessage;
 	quint64 m_payloadLength;
+#ifdef QT6
+    QStringDecoder m_utf8Decoder;
+#else
 	QTextCodec::ConverterState *m_pConverterState;
 	QTextCodec *m_pTextCodec;
+#endif
 };
 
 #endif // DATAPROCESSOR_H

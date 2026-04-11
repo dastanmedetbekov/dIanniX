@@ -22,13 +22,12 @@
 */
 
 #include "nxcurve.h"
+#include <cstdlib>
 #ifdef Q_OS_WIN
     #define MUSTR(a) QString(a).toStdWString()
 #else
     #define MUSTR(a) QString(a).toStdString()
 #endif
-
-Q_CORE_EXPORT double qstrtod(const char *s00, char const **se, bool *ok);
 
 NxCurve::NxCurve(ApplicationCurrent *parent, QTreeWidgetItem *ccParentItem) :
     NxObject(parent, ccParentItem) {
@@ -551,10 +550,10 @@ void NxCurve::setSVG2(const QString & polylineData) {
     curveType = CurveTypePoints;
     pathPoints.clear();
 
-    QStringList tokens = polylineData.split(" ", QString::SkipEmptyParts);
+    QStringList tokens = polylineData.split(" ", Qt::SkipEmptyParts);
     quint16 index = 0;
     foreach(const QString & token, tokens) {
-        QStringList tokenParams = token.split(",", QString::SkipEmptyParts);
+        QStringList tokenParams = token.split(",", Qt::SkipEmptyParts);
         if(tokenParams.count() == 2)
             setPointAt(index++, NxPoint(tokenParams.at(0).toDouble(), tokenParams.at(1).toDouble()), NxPoint(), NxPoint(), false);
     }
@@ -598,7 +597,7 @@ void NxCurve::setEllipse(const NxSize & size) {
 }
 
 void NxCurve::setText(const QString & text) {
-    QStringList textItems = text.split(" ", QString::SkipEmptyParts);
+    QStringList textItems = text.split(" ", Qt::SkipEmptyParts);
     if(textItems.count() > 1)
         setText(text.mid(text.indexOf(textItems.at(1), text.indexOf(textItems.at(0))+textItems.at(0).length())).trimmed(), textItems[0].replace("_", " "));
 }
@@ -1232,7 +1231,7 @@ bool parsePathDataFast(const QString &dataStr, QPainterPath &path)
         QChar pathElem = *str;
         ++str;
         QChar endc = *end;
-        *const_cast<QChar *>(end) = 0; // parseNumbersArray requires 0-termination that QStringRef cannot guarantee
+        *const_cast<QChar *>(end) = QChar(0); // parseNumbersArray requires 0-termination that QStringRef cannot guarantee
         QVarLengthArray<qreal, 8> arg;
         parseNumbersArray(str, arg);
         *const_cast<QChar *>(end) = endc;
@@ -1633,8 +1632,7 @@ static qreal toDouble(const QChar *&str)
         else
 #endif
         {
-            bool ok = false;
-            val = qstrtod(temp, 0, &ok);
+            val = std::strtod(temp, nullptr);
         }
     }
     return val;

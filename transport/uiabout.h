@@ -25,7 +25,8 @@
 #define UIABOUT_H
 
 #include <QWidget>
-#include <QDesktopWidget>
+#include <QScreen>
+#include <QGuiApplication>
 
 namespace Ui {
     class UiAbout;

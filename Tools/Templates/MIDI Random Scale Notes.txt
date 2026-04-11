@@ -1,0 +1,10 @@
+[General]
+name=MIDI Random Scale Notes
+interface=:57120 | standard output
+
+[Messages]
+midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 | random note from C major
+midi://midi_out/note 1 {[60,62,63,65,67,68,70][Math.floor(Math.random()*7)]} 127 1 | random note from C minor
+midi://midi_out/note 1 {48+Math.round(trigger_value_x*11)+[0,2,4,5,7,9,11][Math.floor(Math.random()*7)]} 127 1 | random note from major scale, root from trigger_value_x
+midi://midi_out/note 1 {48+Math.round(trigger_value_x*11)+[0,2,3,5,7,8,10][Math.floor(Math.random()*7)]} 127 1 | random note from minor scale, root from trigger_value_x
+midi://midi_out/note 1 {48+Math.round(trigger_value_x*11)+((trigger_value_z>=0.5)?[0,2,4,5,7,9,11][Math.floor(Math.random()*7)]:[0,2,3,5,7,8,10][Math.floor(Math.random()*7)])} 127 1 | random major/minor by trigger_value_z (>=0.5 major)

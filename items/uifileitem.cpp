@@ -250,7 +250,7 @@ bool UiFileItem::fileCopy(const QFileInfo &source, const QFileInfo &dest) {
     return QFile::copy(source.absoluteFilePath(), dest.absoluteFilePath());
 }
 void UiFileItem::fileRename() {
-    fileRename(filename.file.absoluteFilePath(), filename.val(), this);
+    fileRename(filename.file, filename.val(), this);
 }
 bool UiFileItem::fileRename(const QFileInfo &source, const QString &newNameWithoutSuffix, UiFileItem *item) {
     if(source.isFile()) return fileRename(source, QFileInfo(source.absolutePath() + "/" + newNameWithoutSuffix + "." + source.suffix()), item);

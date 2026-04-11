@@ -17,7 +17,7 @@
 #include "websocketprotocol.h"
 #include "dataprocessor.h"
 #include <QNetworkProxy>
-#include <QTime>
+#include <QElapsedTimer>
 
 class HandshakeRequest;
 class HandshakeResponse;
@@ -147,7 +147,7 @@ private:
 	bool m_isClosingHandshakeSent;
 	bool m_isClosingHandshakeReceived;
 
-	QTime m_pingTimer;
+	QElapsedTimer m_pingTimer;
 
 	DataProcessor m_dataProcessor;
 };

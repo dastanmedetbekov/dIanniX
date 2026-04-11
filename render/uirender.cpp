@@ -22,6 +22,8 @@
 */
 
 #include "uirender.h"
+#include <QStandardPaths>
+#include <QElapsedTimer>
 #include "ui_uirender.h"
 
 UiRender::UiRender(QWidget *parent, void *share) :
@@ -75,18 +77,11 @@ UiRender::~UiRender() {
     delete ui;
 }
 void UiRender::changeEvent(QEvent *event) {
-#ifdef USE_GLWIDGET
-    return QGLWidget::changeEvent(event);
-#else
+#ifdef USE_OPENGLWIDGET
     return QOpenGLWidget::changeEvent(event);
+#else
+    return QGLWidget::changeEvent(event);
 #endif
-    switch (event->type()) {
-    case QEvent::LanguageChange:
-        ui->retranslateUi(this);
-        break;
-    default:
-        break;
-    }
 }
 
 
@@ -97,8 +92,8 @@ bool UiRender::loadTexture(UiRenderTexture *texture, bool gl) {
             glEnable(GL_TEXTURE_2D);
             glGenTextures(1, &(texture->texture));
             glBindTexture(GL_TEXTURE_2D, texture->texture);
-#ifdef USE_GLWIDGET
-            QImage tex = QGLWidget::convertToGLFormat(QImage(texture->filename.absoluteFilePath()));
+#ifdef USE_OPENGLWIDGET
+            QImage tex = QImage(texture->filename.absoluteFilePath()).convertToFormat(QImage::Format_RGBA8888).flipped(Qt::Vertical);
 #else
             QImage tex = QGLWidget::convertToGLFormat(QImage(texture->filename.absoluteFilePath()));
 #endif
@@ -154,11 +149,7 @@ void UiRender::capture(qreal scaleFactor) {
         if(capturedFramesStart) {
             capturedFramesStart = false;
             //Sauvegarde
-#ifdef QT4
-            QString basePath = QDesktopServices::storageLocation(QDesktopServices::DesktopLocation) + "/IanniX_Capture_" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + "/";
-#else
-            QString basePath = QStandardPaths::standardLocations(QStandardPaths::DesktopLocation).first() + "/IanniX_Capture_" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + "/";
-#endif
+            QString basePath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) + "/IanniX_Capture_" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + "/";
             QDir().mkpath(basePath);
             quint16 index = 0;
             foreach(const QImage &capturedFrame, capturedFrames)
@@ -187,7 +178,7 @@ bool UiRender::captureFrame(qreal scaleFactor, const QString &filename) {
             picture = QPixmap::fromImage(grabFrameBuffer(false));
             (new UiMessageBox())->display(tr("Graphical card error"), tr("Due to hardware issue, the high resolution snapshot creation failed.\nA classical snapshot has been saved on your desktop."));
         }
-        picture.save(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation) + "/IanniX_Capture_" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + ".png");
+        picture.save(QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) + "/IanniX_Capture_" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + ".png");
     } else {
         QDir().mkpath(QFileInfo(filename).absoluteDir().absolutePath());
         renderPixmap(renderSize.width(), renderSize.height()).save(filename);
@@ -200,7 +191,7 @@ bool UiRender::captureFrame(qreal scaleFactor, const QString &filename) {
         QPixmap picture = QPixmap::fromImage(grabFramebuffer());
 #endif
         (new UiMessageBox())->display(tr("Graphical card error"), tr("Due to hardware issue, the high resolution snapshot creation failed.\nA classical snapshot has been saved on your desktop."));
-        picture.save(QStandardPaths::standardLocations(QStandardPaths::DesktopLocation).first() + "/IanniX_Capture_" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + ".png");
+        picture.save(QStandardPaths::writableLocation(QStandardPaths::DesktopLocation) + "/IanniX_Capture_" + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss") + ".png");
     }/* else {
         QDir().mkpath(QFileInfo(filename).absoluteDir().absolutePath());
         renderPixmap(renderSize.width(), renderSize.height()).save(filename);
@@ -376,7 +367,7 @@ void UiRender::paintGL() {
         //Start measure
         Transport::perfOpenGLRefreshTime += renderMeasure.elapsed() / 1000.0F;
         Transport::perfOpenGLCounterTime++;
-        renderMeasure.start();
+        renderMeasure.restart();
 
         if(documentToRender) {
             //Background
@@ -646,11 +637,11 @@ void UiRender::wheelEvent(QWheelEvent *event) {
 
     //Zoom calculation
     if(mouse3D) {
-        scaleDest = qMax((qreal)0, scale - (qreal)event->delta() / 150.0F);
+        scaleDest = qMax((qreal)0, scale - (qreal)event->angleDelta().y() / 150.0F);
         //refresh();
     }
-    else if(event->modifiers() & Qt::ShiftModifier) Application::current->execute(QString("%1 %2").arg(COMMAND_ZOOM).arg(Render::zoomValue - (qreal)event->delta() / 3.0F), ExecuteSourceGui);
-    else                                            Application::current->execute(QString("%1 %2").arg(COMMAND_ZOOM).arg(Render::zoomValue - (qreal)event->delta() / 15.0F), ExecuteSourceGui);
+    else if(event->modifiers() & Qt::ShiftModifier) Application::current->execute(QString("%1 %2").arg(COMMAND_ZOOM).arg(Render::zoomValue - (qreal)event->angleDelta().y() / 3.0F), ExecuteSourceGui);
+    else                                            Application::current->execute(QString("%1 %2").arg(COMMAND_ZOOM).arg(Render::zoomValue - (qreal)event->angleDelta().y() / 15.0F), ExecuteSourceGui);
 }
 void UiRender::mousePressEvent(QMouseEvent *event) {
     //Save state when pressed
@@ -671,36 +662,39 @@ void UiRender::mousePressEvent(QMouseEvent *event) {
     mousePressedAxisCenter = Render::axisCenter;
     mouseControl = (event->modifiers() & Qt::ControlModifier);
     mouseShift = (event->modifiers() & Qt::ShiftModifier);
+    const bool mouseAlt = (event->modifiers() & Qt::AltModifier);
     rotationDrag = Render::rotation;
     translationDrag = translation;
 
     if(cursor().shape() == Qt::BlankCursor)
         return;
 
-    // Ctrl+Click on curve: create cursor and attach to curve
-    if(mouseControl && selectedHover && selectedHover->getType() == ObjectsTypeCurve && !Render::editing) {
+    // Alt+Click on curve: create cursor and attach to curve (Ctrl is reserved for duplicate-drag).
+    if(mouseAlt && selectedHover && selectedHover->getType() == ObjectsTypeCurve && !Render::editing) {
         NxCurve *curve = (NxCurve*)selectedHover;
         quint16 cursorId = Application::current->execute("add cursor auto", ExecuteSourceGui).toUInt();
         Application::current->execute(QString("%1 %2 %3").arg(COMMAND_CURSOR_CURVE).arg(cursorId).arg(curve->getId()), ExecuteSourceGui);
-        
-        // Try to find the approximate position on the curve where the mouse clicked
-        // Use intersects to find collision point and offset
+
+        // Use raw click position (without snap) for precise cursor placement.
+        NxPoint rawMouseAreaPosNoCenter(
+            (event->pos().x() - (qreal)size().width()/2) / (qreal)size().width() * Render::axisArea.width(),
+            (event->pos().y() - (qreal)size().height()/2) / (qreal)size().height() * Render::axisArea.height());
+        NxPoint rawMouseAreaPos = rawMouseAreaPosNoCenter - Render::axisCenter;
+
+        // Find nearest hit on curve and position cursor by time percentage.
         NxPoint collisionPoint;
-        qreal clickOffset = curve->intersects(NxRect(mousePressedAreaPos - NxPoint(0.1, 0.1), mousePressedAreaPos + NxPoint(0.1, 0.1)), &collisionPoint);
-        
+        qreal clickOffset = curve->intersects(NxRect(rawMouseAreaPos - NxPoint(0.1, 0.1), rawMouseAreaPos + NxPoint(0.1, 0.1)), &collisionPoint);
+
         if(clickOffset >= 0 && clickOffset <= 1.0) {
-            // Found intersection - position cursor at click location
-            qreal absoluteOffset = clickOffset * curve->getMaxOffset();
-            Application::current->execute(QString("%1 %2 %3 0 end").arg(COMMAND_CURSOR_OFFSET).arg(cursorId).arg(absoluteOffset), ExecuteSourceGui);
+            Application::current->execute(QString("%1 %2 %3").arg(COMMAND_CURSOR_TIME_PERCENT).arg(cursorId).arg(clickOffset), ExecuteSourceGui);
         } else {
-            // No intersection found - position at middle of curve
-            Application::current->execute(QString("%1 %2 %3 0 end").arg(COMMAND_CURSOR_OFFSET).arg(cursorId).arg(curve->getMaxOffset() / 2), ExecuteSourceGui);
+            Application::current->execute(QString("%1 %2 %3").arg(COMMAND_CURSOR_TIME_PERCENT).arg(cursorId).arg(0.5), ExecuteSourceGui);
         }
-        
+
         // Activate cursor (make it ready to work)
         Application::current->execute(QString("%1 %2 0 0 1").arg(COMMAND_CURSOR_START).arg(cursorId), ExecuteSourceGui);
         
-        changeStatus(QString("Cursor %1 created on curve %2").arg(cursorId).arg(curve->getId()));
+        changeStatus(QString("Cursor %1 created on curve %2 (Alt+Click)").arg(cursorId).arg(curve->getId()));
         return;
     }
 
@@ -862,6 +856,11 @@ void UiRender::mouseMoveEvent(QMouseEvent *event) {
                     mouseObjectDrag = true;
                     Application::current->pushSnapshot();
 
+                    if(mouseControl && !mouseShift) {
+                        if(duplicateSelectionForDrag())
+                            changeStatus(tr("Duplicated selection (Ctrl+drag)"));
+                    }
+
                     foreach(NxObject* object, selection)
                         object->dragStart(mousePos, selection.count() > 1);
                 }
@@ -1000,10 +999,79 @@ void UiRender::mouseDoubleClickEvent(QMouseEvent *event) {
                 NxCurve *curve = (NxCurve*)selectedHover;
                 curve->addMousePointAt(mousePressedAreaPos, mouseControl);
             }
-            else if(mouseShift)
-                Application::current->execute(QString("%1 %2").arg(COMMAND_TRIG).arg(selectedHover->getId()), ExecuteSourceGui);
+            else if(mouseShift) {
+                const int repeatCount = mouseControl ? 2 : 1;
+                for(int i = 0; i < repeatCount; i++)
+                    Application::current->execute(QString("%1 %2").arg(COMMAND_TRIG).arg(selectedHover->getId()), ExecuteSourceGui);
+            }
             else if((selectedHover->getType() == ObjectsTypeTrigger) || (selectedHover->getType() == ObjectsTypeCursor))
                 Application::current->openMessageEditor();
+        }
+    }
+}
+
+bool UiRender::duplicateSelectionForDrag() {
+    if(selection.isEmpty() || !documentToRender)
+        return false;
+
+    // Reuse the same serialization path as copy/paste so curve JS blocks
+    // (points arrays/loops) are preserved when duplicating by drag.
+    QString duplicateScript;
+    foreach(NxObject *object, selection) {
+        if(object->getType() != ObjectsTypeCursor)
+            duplicateScript += object->serialize();
+    }
+
+    // Cursor-only selection fallback.
+    if(duplicateScript.isEmpty()) {
+        foreach(NxObject *object, selection)
+            duplicateScript += object->serialize();
+    }
+
+    if(duplicateScript.isEmpty())
+        return false;
+
+    QSet<quint16> idsBefore;
+    for(QHash<quint16, NxObject*>::const_iterator it = documentToRender->objects.constBegin(); it != documentToRender->objects.constEnd(); ++it)
+        idsBefore.insert(it.key());
+
+    documentToRender->source = ExecuteSourceGui;
+    documentToRender->scriptEvaluate(duplicateScript, true);
+
+    QList<quint16> newIds;
+    for(QHash<quint16, NxObject*>::const_iterator it = documentToRender->objects.constBegin(); it != documentToRender->objects.constEnd(); ++it)
+        if(!idsBefore.contains(it.key()))
+            newIds << it.key();
+
+    if(newIds.isEmpty())
+        return false;
+
+    foreach(NxObject *object, selection)
+        object->setSelected(false);
+    selection.clear();
+    selectedHover = 0;
+
+    foreach(const quint16 newId, newIds) {
+        NxObject *newObject = (NxObject*)Application::current->getObjectById(newId);
+        if(newObject) {
+            selectionAdd(newObject);
+            if(!selectedHover)
+                selectedHover = newObject;
+        }
+    }
+
+    emit(selectionChanged());
+    return !selection.isEmpty();
+}
+
+void UiRender::triggerSelectedTriggers(int repeatCount) {
+    if(repeatCount < 1)
+        repeatCount = 1;
+
+    for(int repeat = 0; repeat < repeatCount; repeat++) {
+        foreach(NxObject *object, selection) {
+            if(object->getType() == ObjectsTypeTrigger)
+                Application::current->execute(QString("%1 %2").arg(COMMAND_TRIG).arg(object->getId()), ExecuteSourceGui);
         }
     }
 }
@@ -1150,7 +1218,7 @@ void UiRender::keyPressEvent(QKeyEvent *event) {
                     int channel = 1, note = 60, velocity = 100, duration = 500;
                     bool isDynamic = false;
                     if(currentMessage.contains("midi://")) {
-                        QStringList parts = currentMessage.split(" ", QString::SkipEmptyParts);
+                        QStringList parts = currentMessage.split(" ", Qt::SkipEmptyParts);
                         // Format: "interval, midi://midi_out/note channel note velocity duration"
                         // parts[0]=interval, parts[1]=midi://, parts[2]=channel, parts[3]=note, parts[4]=velocity, parts[5]=duration
                         if(parts.count() >= 6) {
@@ -1193,7 +1261,7 @@ void UiRender::keyPressEvent(QKeyEvent *event) {
                     NxTrigger *trigger = (NxTrigger*)object;
                     QString msg = trigger->getMessagePatternsStr();
                     if(msg.contains("midi://")) {
-                        QStringList parts = msg.split(" ", QString::SkipEmptyParts);
+                        QStringList parts = msg.split(" ", Qt::SkipEmptyParts);
                         if(parts.count() >= 6) {
                             // parts[4] might be a number or "trigger_value_x" string
                             bool ok;
@@ -1245,7 +1313,7 @@ void UiRender::keyPressEvent(QKeyEvent *event) {
                     bool isDynamicDuration = false;
                     
                     if(currentMessage.contains("midi://")) {
-                        QStringList parts = currentMessage.split(" ", QString::SkipEmptyParts);
+                        QStringList parts = currentMessage.split(" ", Qt::SkipEmptyParts);
                         // Format: "interval, midi://midi_out/note channel note velocity duration"
                         // parts[0]=interval, parts[1]=midi://, parts[2]=channel, parts[3]=note, parts[4]=velocity, parts[5]=duration
                         if(parts.count() >= 6) {
@@ -1290,7 +1358,7 @@ void UiRender::keyPressEvent(QKeyEvent *event) {
                     NxTrigger *trigger = (NxTrigger*)object;
                     QString msg = trigger->getMessagePatternsStr();
                     if(msg.contains("midi://")) {
-                        QStringList parts = msg.split(" ", QString::SkipEmptyParts);
+                        QStringList parts = msg.split(" ", Qt::SkipEmptyParts);
                         if(parts.count() >= 6) {
                             // parts[5] might be a number or "trigger_duration" string
                             bool ok;
@@ -1346,7 +1414,7 @@ void UiRender::keyPressEvent(QKeyEvent *event) {
                         
                         // Parse existing message to preserve channel and check format
                         if(currentMessage.contains("midi://")) {
-                            QStringList parts = currentMessage.split(" ", QString::SkipEmptyParts);
+                            QStringList parts = currentMessage.split(" ", Qt::SkipEmptyParts);
                             // Format: "interval, midi://midi_out/note channel note velocity duration"
                             if(parts.count() >= 6) {
                                 channel = parts[2].toInt();
@@ -1388,13 +1456,11 @@ void UiRender::keyPressEvent(QKeyEvent *event) {
     
 skipMusicInput:
     // Manual trigger test with Enter key (Space is used for playback)
+    // Ctrl+Enter triggers each selected trigger twice.
     if((event->nativeScanCode() == 28 || event->nativeScanCode() == 36) && selection.count() > 0) {  // Enter or Numpad Enter
-        foreach(NxObject *object, selection) {
-            if(object->getType() == ObjectsTypeTrigger) {
-                Application::current->execute(QString("%1 %2").arg(COMMAND_TRIG).arg(object->getId()), ExecuteSourceGui);
-            }
-        }
-        changeStatus(QString("Triggered %1 object(s)").arg(selection.count()));
+        const int repeatCount = ((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) ? 2 : 1;
+        triggerSelectedTriggers(repeatCount);
+        changeStatus(QString("Triggered %1 object(s) x%2").arg(selection.count()).arg(repeatCount));
         event->accept();
         return;
     }

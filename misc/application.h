@@ -83,11 +83,16 @@ public slots:
     virtual void executeAsScript(const QString &script) = 0;
 };
 
+#ifdef QT6
+#define USE_OPENGLWIDGET
+//#define USE_GLWIDGET
+#else
 #ifdef QT5
 #define USE_OPENGLWIDGET
 //#define USE_GLWIDGET
 #else
 #define USE_GLWIDGET
+#endif
 #endif
 
 

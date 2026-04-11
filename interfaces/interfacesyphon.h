@@ -33,12 +33,12 @@ class InterfaceSyphon;
 
 class InterfaceSyphon : public NetworkInterface {
     Q_OBJECT
-    
-#ifdef SYPHON_INSTALLED
+
 public:
     explicit InterfaceSyphon(QWidget *parent = 0);
     ~InterfaceSyphon();
-
+    
+#ifdef SYPHON_INSTALLED
 public:
     UiBool serverEnable, clientEnable;
     bool   serverInit, clientInit, clientTextureOk;

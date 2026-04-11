@@ -1,14 +1,19 @@
 cmake_minimum_required(VERSION 3.16)
 project(IanniX VERSION 0.9.20 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets OpenGL Network Script Xml)
+# Find required Qt6 components
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Network Xml OpenGL OpenGLWidgets Qml)
 
+# Find OpenGL (required for raw OpenGL calls in abstractionsgl.cpp)
+find_package(OpenGL REQUIRED)
+
+# Find platform-specific libraries
 if(UNIX AND NOT APPLE)
     find_package(ALSA REQUIRED)
     find_package(PkgConfig REQUIRED)
@@ -45,7 +50,11 @@ set(SOURCES
     geometry/qmuparser/muParserCallback.cpp
     geometry/qmuparser/muParserError.cpp
     geometry/qmuparser/muParserTokenReader.cpp
+    geometry/qmuparser/muParserDLL.cpp
+    geometry/qmuparser/muParserInt.cpp
+    geometry/qmuparser/muParserTest.cpp
     objects/nxdocument.cpp
+    scripting/diamed/diamed_compiler.cpp
     objects/nxtrigger.cpp
     objects/nxgroup.cpp
     objects/nxcurve.cpp
@@ -57,17 +66,17 @@ set(SOURCES
     gui/uimessagebox.cpp
     gui/uisplashscreen.cpp
     gui/qjsedit/jsedit.cpp
-    gui/uitreeview.cpp
-    gui/uitreeviewwidget.cpp
-    gui/uitreedelegate.cpp
-    gui/uifileitem.cpp
-    gui/uicoloritem.cpp
-    gui/uipathpointsitem.cpp
-    gui/uitextureitem.cpp
+    items/uitreeview.cpp
+    items/uitreeviewwidget.cpp
+    items/uitreedelegate.cpp
+    items/uifileitem.cpp
+    items/uicoloritem.cpp
+    items/uipathpointsitem.cpp
+    items/uitextureitem.cpp
     interfaces/extscriptvariableask.cpp
     interfaces/extoscpatternask.cpp
     interfaces/extoscpatterneditor.cpp
-    render/abstractionsgl.cpp
+    abstractionsgl.cpp
     interfaces/interfacehttp.cpp
     interfaces/interfacemidi.cpp
     interfaces/interfaceosc.cpp
@@ -75,15 +84,22 @@ set(SOURCES
     interfaces/interfacetcp.cpp
     interfaces/interfaceudp.cpp
     interfaces/interfacedirect.cpp
+    interfaces/interfacesyphon.cpp
     interfaces/qextserialport/qextserialport.cpp
     interfaces/qextserialport/qextserialenumerator.cpp
     interfaces/qrtmidi/RtMidi.cpp
-    interfaces/qhttpserver/websocket.cpp
-    interfaces/qhttpserver/websocketserver.cpp
-    interfaces/qhttpserver/websocketprotocol.cpp
-    interfaces/qhttpserver/handshakerequest.cpp
-    interfaces/qhttpserver/handshakeresponse.cpp
-    interfaces/qhttpserver/dataprocessor.cpp
+#    interfaces/qkinect/QKinect.cpp
+    interfaces/qwebsockets/websocket.cpp
+    interfaces/qwebsockets/websocketserver.cpp
+    interfaces/qwebsockets/websocketprotocol.cpp
+    interfaces/qwebsockets/handshakerequest.cpp
+    interfaces/qwebsockets/handshakeresponse.cpp
+    interfaces/qwebsockets/dataprocessor.cpp
+    interfaces/zeroconf/avahiLib.cpp
+    interfaces/zeroconf/embeddedLib.cpp
+    interfaces/zeroconf/mdnsderived.cpp
+    interfaces/zeroconf/nativeLib.cpp
+    interfaces/zeroconf/servicebrowser.cpp
 )
 
 set(HEADERS
@@ -150,10 +166,13 @@ target_include_directories(iannix PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/geometry/qmuparser
     ${CMAKE_CURRENT_SOURCE_DIR}/gui
     ${CMAKE_CURRENT_SOURCE_DIR}/gui/qjsedit
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui/qffmpeg
     ${CMAKE_CURRENT_SOURCE_DIR}/interfaces
     ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/qextserialport
     ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/qrtmidi
-    ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/qhttpserver
+    ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/qkinect
+    ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/qwebsockets
+    ${CMAKE_CURRENT_SOURCE_DIR}/interfaces/zeroconf
     ${CMAKE_CURRENT_SOURCE_DIR}/messages
     ${CMAKE_CURRENT_SOURCE_DIR}/misc
     ${CMAKE_CURRENT_SOURCE_DIR}/objects
@@ -161,20 +180,21 @@ target_include_directories(iannix PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/transport
 )
 
-target_link_libraries(iannix
-    Qt5::Core
-    Qt5::Gui
-    Qt5::Widgets
-    Qt5::OpenGL
-    Qt5::Network
-    Qt5::Script
-    Qt5::Xml
+target_link_libraries(iannix PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    Qt6::Network
+    Qt6::Xml
+    Qt6::OpenGL
+    Qt6::OpenGLWidgets
+    Qt6::Qml
+    OpenGL::GL
 )
 
 target_compile_definitions(iannix PRIVATE
-    QT5
+    QT6
     IANNIX_64
-    IANNIX_32
     __RTMIDI_DEBUG__
 )
 
@@ -187,21 +207,27 @@ if(UNIX AND NOT APPLE)
         __linux__
         QESP_NO_UDEV
     )
-    target_link_libraries(iannix ${ALSA_LIBRARIES})
+    target_link_libraries(iannix PRIVATE ALSA::ALSA)
     if(JACK_FOUND)
-        target_link_libraries(iannix ${JACK_LIBRARIES})
+        target_link_libraries(iannix PRIVATE ${JACK_LIBRARIES})
         target_include_directories(iannix PRIVATE ${JACK_INCLUDE_DIRS})
     endif()
 endif()
 
 if(WIN32)
     target_compile_definitions(iannix PRIVATE __WINDOWS_MM__)
-    target_link_libraries(iannix winmm setupapi advapi32 user32 opengl32)
+    target_link_libraries(iannix PRIVATE
+        winmm
+        setupapi
+        advapi32
+        user32
+        opengl32
+    )
 endif()
 
 if(APPLE)
     target_compile_definitions(iannix PRIVATE __MACOSX_CORE__)
-    target_link_libraries(iannix
+    target_link_libraries(iannix PRIVATE
         "-framework CoreMidi"
         "-framework CoreAudio"
         "-framework CoreFoundation"

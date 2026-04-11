@@ -119,7 +119,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical, QScrollBar::add-pa
 }
 
 QSplitter::handle {
-	background: 							rgb(255, 255, 255, 30);
+  background: 							rgba(255, 255, 255, 30);
 }
 QSplitter::handle:pressed {
 	background: 							rgb(0, 187, 255);

@@ -1,0 +1,29 @@
+[General]
+name=MIDI Scales 12 Keys Major Minor
+interface=:57120 | standard output
+
+[Messages]
+midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 | C major random degree
+midi://midi_out/note 1 {[61,63,65,66,68,70,72][Math.floor(Math.random()*7)]} 127 1 | C# major random degree
+midi://midi_out/note 1 {[62,64,66,67,69,71,73][Math.floor(Math.random()*7)]} 127 1 | D major random degree
+midi://midi_out/note 1 {[63,65,67,68,70,72,74][Math.floor(Math.random()*7)]} 127 1 | D# major random degree
+midi://midi_out/note 1 {[64,66,68,69,71,73,75][Math.floor(Math.random()*7)]} 127 1 | E major random degree
+midi://midi_out/note 1 {[65,67,69,70,72,74,76][Math.floor(Math.random()*7)]} 127 1 | F major random degree
+midi://midi_out/note 1 {[66,68,70,71,73,75,77][Math.floor(Math.random()*7)]} 127 1 | F# major random degree
+midi://midi_out/note 1 {[67,69,71,72,74,76,78][Math.floor(Math.random()*7)]} 127 1 | G major random degree
+midi://midi_out/note 1 {[68,70,72,73,75,77,79][Math.floor(Math.random()*7)]} 127 1 | G# major random degree
+midi://midi_out/note 1 {[69,71,73,74,76,78,80][Math.floor(Math.random()*7)]} 127 1 | A major random degree
+midi://midi_out/note 1 {[70,72,74,75,77,79,81][Math.floor(Math.random()*7)]} 127 1 | A# major random degree
+midi://midi_out/note 1 {[71,73,75,76,78,80,82][Math.floor(Math.random()*7)]} 127 1 | B major random degree
+midi://midi_out/note 1 {[60,62,63,65,67,68,70][Math.floor(Math.random()*7)]} 127 1 | C minor random degree
+midi://midi_out/note 1 {[61,63,64,66,68,69,71][Math.floor(Math.random()*7)]} 127 1 | C# minor random degree
+midi://midi_out/note 1 {[62,64,65,67,69,70,72][Math.floor(Math.random()*7)]} 127 1 | D minor random degree
+midi://midi_out/note 1 {[63,65,66,68,70,71,73][Math.floor(Math.random()*7)]} 127 1 | D# minor random degree
+midi://midi_out/note 1 {[64,66,67,69,71,72,74][Math.floor(Math.random()*7)]} 127 1 | E minor random degree
+midi://midi_out/note 1 {[65,67,68,70,72,73,75][Math.floor(Math.random()*7)]} 127 1 | F minor random degree
+midi://midi_out/note 1 {[66,68,69,71,73,74,76][Math.floor(Math.random()*7)]} 127 1 | F# minor random degree
+midi://midi_out/note 1 {[67,69,70,72,74,75,77][Math.floor(Math.random()*7)]} 127 1 | G minor random degree
+midi://midi_out/note 1 {[68,70,71,73,75,76,78][Math.floor(Math.random()*7)]} 127 1 | G# minor random degree
+midi://midi_out/note 1 {[69,71,72,74,76,77,79][Math.floor(Math.random()*7)]} 127 1 | A minor random degree
+midi://midi_out/note 1 {[70,72,73,75,77,78,80][Math.floor(Math.random()*7)]} 127 1 | A# minor random degree
+midi://midi_out/note 1 {[71,73,74,76,78,79,81][Math.floor(Math.random()*7)]} 127 1 | B minor random degree

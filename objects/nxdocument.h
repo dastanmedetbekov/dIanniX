@@ -25,7 +25,7 @@
 #define NXDOCUMENT_H
 
 #include <QObject>
-#include <QScriptEngine>
+#include <QJSEngine>
 #include <QFile>
 #include <QFileInfo>
 #include <QInputDialog>
@@ -60,6 +60,7 @@ private:
     QFileInfo hiddenFilename;
 public:
     explicit NxDocument(ApplicationCurrent *parent, UiFileItem *_fileItem = 0);
+    ~NxDocument();
 
     inline void clear() {
         QStringList commands;
@@ -77,7 +78,7 @@ public:
     void updateCode(bool fromFile, bool raiseWindow);
     const QString getContent(bool fromFile);
     void remplaceInFunction(QString *content, const QString &delimiter, const QString &data);
-    QScriptValue scriptEvaluate(const QString &script, bool _createNewObjectIfExists);
+    QJSValue scriptEvaluate(const QString &script, bool _createNewObjectIfExists);
 
 public:
     QMap<QString, NxGroup*> groups;
@@ -112,23 +113,22 @@ public:
             return 0;
     }
     inline quint16 nextAvailableId() const {
-        //return objects.count();
         quint16 nextId = 0;
-        for(quint16 index = 0 ; index < objects.count() ; index++)
-            if(objects.keys().at(index) > nextId)
-                nextId = objects.keys().at(index);
-        return nextId+1;
+        for (auto it = objects.constBegin(); it != objects.constEnd(); ++it)
+            if (it.key() > nextId)
+                nextId = it.key();
+        return nextId + 1;
     }
 
 
 
     //SCRIPT
 public:
-    QScriptEngine scriptEngine;
+    QJSEngine scriptEngine;
 protected:
     ExtScriptVariableAsk *variable;
-    QScriptValue script;
-    QScriptValue scriptOnIncomingMessage, scriptMakeWithScript, scriptAlterateWithScript, scriptMadeThroughGUI, scriptMadeThroughInterfaces, scriptAskUserForParameters;
+    QJSValue script;
+    QJSValue scriptOnIncomingMessage, scriptMakeWithScript, scriptAlterateWithScript, scriptMadeThroughGUI, scriptMadeThroughInterfaces, scriptAskUserForParameters;
     NxPoint mousePos;
     QString scriptContent;
 
@@ -139,13 +139,13 @@ public:
     }
 
     inline QString incomingMessage(const MessageIncomming &source, bool needOutput = false, bool = true) {
-        if(scriptOnIncomingMessage.isValid()) {
+        if(!scriptOnIncomingMessage.isUndefined()) {
             QString argumentsStr;
             foreach(const QString &argument, source.arguments)
                 argumentsStr += "\"" + argument + "\",";
             argumentsStr.chop(1);
-            if(needOutput)  return scriptOnIncomingMessage.call(QScriptValue(), QScriptValueList() << source.protocol << source.host << source.port.toString() << source.destination << scriptEngine.evaluate(QString("[%5]").arg(argumentsStr))).toString();
-            else            scriptOnIncomingMessage.call(QScriptValue(), QScriptValueList() << source.protocol << source.host << source.port.toString() << source.destination << scriptEngine.evaluate(QString("[%5]").arg(argumentsStr)));
+            if(needOutput)  return scriptOnIncomingMessage.call({scriptEngine.evaluate(QString("[%5]").arg(argumentsStr))}).toString();
+            else            scriptOnIncomingMessage.call({scriptEngine.evaluate(QString("[%5]").arg(argumentsStr))});
         }
         return QString();
     }

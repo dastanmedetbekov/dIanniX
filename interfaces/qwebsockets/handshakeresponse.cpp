@@ -8,6 +8,7 @@
 #include <QCryptographicHash>
 #include <QSet>
 #include <QList>
+#include <algorithm>
 
 HandshakeResponse::HandshakeResponse(const HandshakeRequest &request,
 									 const QList<WebSocketProtocol::Version> &supportedVersions,
@@ -60,10 +61,18 @@ QString HandshakeResponse::getHandshakeResponse(const HandshakeRequest &request,
 	if (request.isValid())
 	{
 		QString acceptKey = calculateAcceptKey(request.getKey());
-		QList<QString> matchingProtocols = supportedProtocols.toSet().intersect(request.getProtocols().toSet()).toList();
-		QList<QString> matchingExtensions = supportedExtensions.toSet().intersect(request.getExtensions().toSet()).toList();
-		QList<WebSocketProtocol::Version> matchingVersions = request.getVersions().toSet().intersect(supportedVersions.toSet()).toList();
-		qStableSort(matchingVersions.begin(), matchingVersions.end(), qGreater<WebSocketProtocol::Version>());	//sort in descending order
+		QSet<QString> supportedProtocolsSet(supportedProtocols.begin(), supportedProtocols.end());
+		QSet<QString> requestProtocolsSet(request.getProtocols().begin(), request.getProtocols().end());
+		QList<QString> matchingProtocols = supportedProtocolsSet.intersect(requestProtocolsSet).values();
+
+		QSet<QString> supportedExtensionsSet(supportedExtensions.begin(), supportedExtensions.end());
+		QSet<QString> requestExtensionsSet(request.getExtensions().begin(), request.getExtensions().end());
+		QList<QString> matchingExtensions = supportedExtensionsSet.intersect(requestExtensionsSet).values();
+
+		QSet<WebSocketProtocol::Version> requestVersionsSet(request.getVersions().begin(), request.getVersions().end());
+		QSet<WebSocketProtocol::Version> supportedVersionsSet(supportedVersions.begin(), supportedVersions.end());
+		QList<WebSocketProtocol::Version> matchingVersions = requestVersionsSet.intersect(supportedVersionsSet).values();
+		std::sort(matchingVersions.begin(), matchingVersions.end(), std::greater<WebSocketProtocol::Version>());	//sort in descending order
 
 		if (matchingVersions.isEmpty())
 		{

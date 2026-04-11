@@ -23,6 +23,18 @@
 
 #include "uihelp.h"
 #include "ui_uihelp.h"
+#include "misc/application.h"
+
+namespace {
+bool useLightHelpTheme() {
+    if((Application::current) && (Application::current->getMainWindow())) {
+        const QString mainStyle = Application::current->getMainWindow()->styleSheet();
+        if(!mainStyle.trimmed().isEmpty())
+            return false;
+    }
+    return Application::colorTheme;
+}
+}
 
 quint16 UiHelp::oscPort = 0;
 UiHelp *UiHelp::statusHelpWidget = 0;
@@ -86,7 +98,7 @@ void UiHelp::statusHelp(QString _statusText) {
 void UiHelp::messageHelp(QString _messageText) {
     if(isVisible()) {
         _messageText = _messageText.replace("\\n", "<br/>");
-        QStringList messageTextsArguments = _messageText.split(" ", QString::SkipEmptyParts);
+        QStringList messageTextsArguments = _messageText.split(" ", Qt::SkipEmptyParts);
 
         quint16 radix = 0;
         HelpInfo helpInfo = Help::getHelpFor(messageTextsArguments.first());
@@ -114,23 +126,30 @@ void UiHelp::messageHelp(QString _messageText) {
 
 void UiHelp::statusHelp() {
     if((isVisible()) && (statusTexts.count())) {
+        const bool useLightTheme = useLightHelpTheme();
+        const QString htmlBodyBg = useLightTheme ? "#EEEDE8" : "#1C1F28";
+        const QString htmlTextColor = useLightTheme ? "#1F2530" : "#D8DDE8";
+        const QString htmlPanelBg = useLightTheme ? "rgb(227,226,220)" : "rgb(42,47,58)";
+        const QString htmlHintColor = useLightTheme ? "rgb(115,159,89)" : "rgb(154,209,125)";
+        const QString htmlLinkColor = useLightTheme ? "rgb(244,98,0)" : "rgb(143,180,255)";
+
         QString html = "";
 
         html += "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">";
         html += "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">";
-        html += "body   { background-color: #EEEDE8; font-family: Museo Sans, Museo Sans 500, Arial; font-size: 11px; padding: 11px }";
+        html += QString("body   { background-color: %1; color: %2; font-family: Museo Sans, Museo Sans 500, Arial; font-size: 11px; padding: 11px }").arg(htmlBodyBg).arg(htmlTextColor);
         html += ".code  { font-family:Monaco, Lucida Console, Monospace; font-size: 11px; }";
         html += ".bold  {  }";
         html += ".titre { font-size: 14px; }";
-        html += ".description { background-color: rgb(227,226,220); }";
-        html += ".syntax      { background-color: rgb(227,226,220); }";
-        html += ".example     { background-color: rgb(227,226,220); }";
-        html += ".snippet     { background-color: rgb(227,226,220); }";
+        html += QString(".description { background-color: %1; }").arg(htmlPanelBg);
+        html += QString(".syntax      { background-color: %1; }").arg(htmlPanelBg);
+        html += QString(".example     { background-color: %1; }").arg(htmlPanelBg);
+        html += QString(".snippet     { background-color: %1; }").arg(htmlPanelBg);
         html += ".sstitre     { }";
         html += ".action      { font-size: 9px;}";
         html += ".category    { font-size: 16px;  }";
-        html += ".hint        { color: rgb(115,159,89); }";
-        html += "a	          { color: rgb(244,98,0); text-decoration: none; }";
+        html += QString(".hint        { color: %1; }").arg(htmlHintColor);
+        html += QString("a            { color: %1; text-decoration: none; }").arg(htmlLinkColor);
         html += "a:hover      { text-decoration: underline; }";
         html += "</style></head><body><p>";
 
@@ -148,7 +167,7 @@ void UiHelp::statusHelp() {
                 QString messageDescription  = messageTexts.at(i).second.description.trimmed();
                 QString messageSyntax       = messageTexts.at(i).second.syntax.trimmed();
 
-                QStringList messageTextsArguments = messageText.split(" ", QString::SkipEmptyParts);
+                QStringList messageTextsArguments = messageText.split(" ", Qt::SkipEmptyParts);
 
                 QString messageVerbose = messageText;
                 messageVerbose = messageVerbose.replace(" selection ", " <span class='hint'>&lt;object id or group&gt;</span> ");
@@ -231,11 +250,18 @@ void UiHelp::scriptHelp(QComboBox *comboBox, const QStringList &lookCategories) 
 }
 void UiHelp::scriptHelp(const QString &looking, const QStringList &lookCategories) {
     if(isVisible()) {
+        const bool useLightTheme = useLightHelpTheme();
+        const QString htmlBodyBg = useLightTheme ? "#EEEDE8" : "#1C1F28";
+        const QString htmlTextColor = useLightTheme ? "#1F2530" : "#D8DDE8";
+        const QString htmlPanelBg = useLightTheme ? "rgb(227,226,220)" : "rgb(42,47,58)";
+        const QString htmlHintColor = useLightTheme ? "rgb(115,159,89)" : "rgb(154,209,125)";
+        const QString htmlLinkColor = useLightTheme ? "rgb(244,98,0)" : "rgb(143,180,255)";
+
         QString html = "";
 
         html += "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">";
         html += "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">";
-        html += "body   { background-color: #EEEDE8; font-family: Museo Sans, Museo Sans 500, Arial; font-size: 11px; }";
+        html += QString("body   { background-color: %1; color: %2; font-family: Museo Sans, Museo Sans 500, Arial; font-size: 11px; }").arg(htmlBodyBg).arg(htmlTextColor);
 #ifdef Q_OS_WIN
         html += ".code  { font-family:Monaco, Lucida Console, Monospace; font-size: 11px; }";
 #else
@@ -243,15 +269,15 @@ void UiHelp::scriptHelp(const QString &looking, const QStringList &lookCategorie
 #endif
         html += ".bold  {  }";
         html += ".titre { font-size: 14px; }";
-        html += ".description { background-color: rgb(227,226,220); }";
-        html += ".syntax      { background-color: rgb(227,226,220); }";
-        html += ".example     { background-color: rgb(227,226,220); }";
-        html += ".snippet     { background-color: rgb(227,226,220); }";
+        html += QString(".description { background-color: %1; }").arg(htmlPanelBg);
+        html += QString(".syntax      { background-color: %1; }").arg(htmlPanelBg);
+        html += QString(".example     { background-color: %1; }").arg(htmlPanelBg);
+        html += QString(".snippet     { background-color: %1; }").arg(htmlPanelBg);
         html += ".sstitre     { }";
         html += ".action      { font-size: 10px;}";
         html += ".category    { font-size: 16px;  }";
-        html += ".hint        { color: rgb(115,159,89); }";
-        html += "a	          { color: rgb(244,98,0); text-decoration: none; }";
+        html += QString(".hint        { color: %1; }").arg(htmlHintColor);
+        html += QString("a            { color: %1; text-decoration: none; }").arg(htmlLinkColor);
         html += "a:hover      { text-decoration: underline; }";
         html += "</style></head><body><p>";
 

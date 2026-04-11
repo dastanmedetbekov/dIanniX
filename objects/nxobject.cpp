@@ -58,82 +58,85 @@ void NxObject::initialize(bool firstTime) {
 }
 
 
-void NxObject::setMessagePatterns(const QString & messagePatternsStr) {
-    messagePatterns.clear();
-    messageLabel.clear();
-    performCollision = false;
+void NxObject::parseMessagePatternString(const QString &messagePatternsStr,
+                                          QVector<QVector<QByteArray>> &outMessagePatterns,
+                                          quint16 *outInterval,
+                                          bool *outPerformCollision) {
+    outMessagePatterns.clear();
+    if(outPerformCollision)
+        *outPerformCollision = false;
 
-    QString messagePatternsStrTemp = messagePatternsStr;
+    QString strTemp = messagePatternsStr;
+    strTemp.append(' ');
 
     QVector<QByteArray> messagePattern;
     QString messagePatternItem = "";
     quint16 messagePatternItemJS = 0;
     bool first = true;
 
-    messagePatternsStrTemp.append(' '); //Pad with a space to simplify end-string handling
-
-    for(quint16 messagePatternsStrIndex = 0 ; messagePatternsStrIndex < messagePatternsStrTemp.count() ; messagePatternsStrIndex++) {
-
-        QChar messagePatternsStrChar = messagePatternsStrTemp.at(messagePatternsStrIndex);
-        if((!messagePatternItemJS) && (messagePatternsStrChar == ' ')) {
-            if(messagePatternItem.count() > 0)
+    for(quint16 i = 0; i < strTemp.count(); i++) {
+        QChar ch = strTemp.at(i);
+        if((!messagePatternItemJS) && (ch == ' ')) {
+            if(!messagePatternItem.isEmpty())
                 messagePattern.append(qPrintable(messagePatternItem));
-
-            if(messagePatternItem.contains("collision_"))
-                performCollision = true;
+            if(outPerformCollision && messagePatternItem.contains("collision_"))
+                *outPerformCollision = true;
             messagePatternItem = "";
         }
-        else if((messagePatternItemJS) && (messagePatternsStrChar == '}')) {
+        else if((messagePatternItemJS) && (ch == '}')) {
             messagePatternItemJS--;
             if(!messagePatternItemJS) {
-                if(messagePatternItem.count() > 0) {
+                if(!messagePatternItem.isEmpty()) {
                     messagePattern.append(qPrintable(QString("{" + messagePatternItem + "}")));
-                    if(messagePatternItem.contains("collision_"))
-                        performCollision = true;
+                    if(outPerformCollision && messagePatternItem.contains("collision_"))
+                        *outPerformCollision = true;
                 }
                 messagePatternItem = "";
             }
             else
-                messagePatternItem += messagePatternsStrChar;
+                messagePatternItem += ch;
         }
-        else if((!messagePatternItemJS) && (messagePatternsStrChar == ',')) {
-            if(messagePatternItem.count() > 0) {
+        else if((!messagePatternItemJS) && (ch == ',')) {
+            if(!messagePatternItem.isEmpty()) {
                 if(first) {
                     quint16 interval = messagePatternItem.toUInt();
-                    if(interval > 0) {
-                        //qDebug("-- %d -- ", interval);
-                        setMessageTimeInterval(interval);
-                    }
+                    if((interval > 0) && (outInterval))
+                        *outInterval = interval;
                 }
                 else {
                     messagePattern.append(qPrintable(messagePatternItem));
                 }
             }
             first = false;
-            if(messagePattern.count() > 0)
-                messagePatterns.append(messagePattern);
+            if(!messagePattern.isEmpty())
+                outMessagePatterns.append(messagePattern);
             messagePatternItem = "";
             messagePattern.clear();
             messagePatternItemJS = 0;
         }
-        else if(messagePatternsStrChar == '{') {
+        else if(ch == '{') {
             if(!messagePatternItemJS)
                 messagePatternItem = "";
             else
-                messagePatternItem += messagePatternsStrChar;
+                messagePatternItem += ch;
             messagePatternItemJS++;
         }
         else {
-            messagePatternItem += messagePatternsStrChar;
+            messagePatternItem += ch;
         }
     }
 
-    if (messagePatternItem.count() > 0) {   //Should only get here if curly brackets are unbalanced to the left
+    // Handle unbalanced curly brackets
+    if(!messagePatternItem.isEmpty()) {
         messagePattern.append(qPrintable(QString("{" + messagePatternItem)));
     }
+    if(!messagePattern.isEmpty())
+        outMessagePatterns.append(messagePattern);
+}
 
-    if(messagePattern.count() > 0)
-        messagePatterns.append(messagePattern);
+void NxObject::setMessagePatterns(const QString &messagePatternsStr) {
+    messageLabel.clear();
+    parseMessagePatternString(messagePatternsStr, messagePatterns, &messageTimeInterval, &performCollision);
 
     foreach(const QVector<QByteArray> &messagePatternItems, messagePatterns) {
         QString messageLabelStr;
@@ -143,63 +146,10 @@ void NxObject::setMessagePatterns(const QString & messagePatternsStr) {
     }
 }
 
-QVector< QVector<QByteArray> > NxObject::parseMessagesPattern(const QString & messagePatternsStr, quint16 *messageInterval) {
-    QVector< QVector<QByteArray> > messagePatterns;
-
-    QVector<QByteArray> messagePattern;
-    QString messagePatternItem = "";
-    quint16 messagePatternItemJS = 0;
-    bool first = true;
-    for(quint16 messagePatternsStrIndex = 0 ; messagePatternsStrIndex < messagePatternsStr.count() ; messagePatternsStrIndex++) {
-        QChar messagePatternsStrChar = messagePatternsStr.at(messagePatternsStrIndex);
-        if((!messagePatternItemJS) && (messagePatternsStrChar == ' ')) {
-            if(messagePatternItem.count() > 0)
-                messagePattern.append(qPrintable(messagePatternItem));
-            messagePatternItem = "";
-        }
-        else if((messagePatternItemJS) && (messagePatternsStrChar == '}')) {
-            messagePatternItemJS--;
-            if(!messagePatternItemJS) {
-                if(messagePatternItem.count() > 0)
-                    messagePattern.append(qPrintable(QString("{" + messagePatternItem + "}")));
-                messagePatternItem = "";
-            }
-            else
-                messagePatternItem += messagePatternsStrChar;
-        }
-        else if((!messagePatternItemJS) && (messagePatternsStrChar == ',')) {
-            if(messagePatternItem.count() > 0) {
-                if(first) {
-                    quint16 interval = messagePatternItem.toUInt();
-                    if((interval > 0) && (messageInterval))
-                        *messageInterval = interval;
-                }
-                else
-                    messagePattern.append(qPrintable(messagePatternItem));
-            }
-            first = false;
-            if(messagePattern.count() > 0)
-                messagePatterns.append(messagePattern);
-            messagePatternItem = "";
-            messagePattern.clear();
-        }
-        else if(messagePatternsStrChar == '{') {
-            if(!messagePatternItemJS)
-                messagePatternItem = "";
-            else
-                messagePatternItem += messagePatternsStrChar;
-            messagePatternItemJS++;
-        }
-        else {
-            messagePatternItem += messagePatternsStrChar;
-        }
-    }
-    if(messagePatternItem.count() > 0)
-        messagePattern.append(qPrintable(messagePatternItem));
-    if(messagePattern.count() > 0)
-        messagePatterns.append(messagePattern);
-
-    return messagePatterns;
+QVector<QVector<QByteArray>> NxObject::parseMessagesPattern(const QString &messagePatternsStr, quint16 *messageInterval) {
+    QVector<QVector<QByteArray>> result;
+    parseMessagePatternString(messagePatternsStr, result, messageInterval, nullptr);
+    return result;
 }
 
 void NxObject::dispatchProperty(const char *_property, const QVariant & value) {

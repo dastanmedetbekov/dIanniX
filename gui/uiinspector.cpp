@@ -110,7 +110,7 @@ UiInspector::UiInspector(QWidget *parent) :
     UiFileItem::syncWith(QFileInfoList() << QFileInfo(Application::pathExamples.absoluteFilePath() + "/") << QFileInfo(Application::pathDocuments.absoluteFilePath() + "/"), ui->files->getTree());
     ui->files->getTree()->collapseAll();
     for(quint16 i = 0 ; i < ui->files->getTree()->topLevelItemCount() ; i++) {
-        UiFileItem *searchItem = ((UiFileItem*)ui->files->getTree()->topLevelItem(i))->find(Application::pathApplication.absoluteFilePath() + "/IanniX/");
+        UiFileItem *searchItem = ((UiFileItem*)ui->files->getTree()->topLevelItem(i))->find(QFileInfo(Application::pathApplication.absoluteFilePath() + "/IanniX/"));
         if(searchItem)
             ui->files->getTree()->expandItem(searchItem);
     }
@@ -171,7 +171,7 @@ UiInspector::UiInspector(QWidget *parent) :
         QHash<QString, QString> params;
         QFile templateFile(file.absoluteFilePath());
         if(templateFile.open(QFile::ReadOnly)) {
-            QStringList templatesLong = QString(templateFile.readAll()).split("\n", QString::SkipEmptyParts);
+            QStringList templatesLong = QString(templateFile.readAll()).split("\n", Qt::SkipEmptyParts);
             foreach(const QString &templateLong, templatesLong) {
                 if(templateLong.startsWith("["))
                     header = templateLong.toLower();
@@ -403,7 +403,7 @@ void UiInspector::actionColor() {
     if(!actionInfoLock) {
         QComboBox *combo = (QComboBox*)sender();
         QString val = combo->currentText();
-        QStringList oldValStr = combo->currentText().split(" ", QString::SkipEmptyParts);
+        QStringList oldValStr = combo->currentText().split(" ", Qt::SkipEmptyParts);
         if(combo->currentText() == tr("Choose…")) {
             QColor oldVal = Qt::white;
             if(oldValStr.count() == 4)
@@ -464,8 +464,10 @@ void UiInspector::actionMessages() {
         ExtOscPatternAsk *ask = new ExtOscPatternAsk(Application::current->getMainWindow(), render->getSelection());
         if(!ask->onlyCurves)
             if(ask->exec()) {
-                if(ask->getMessagePatterns().length())  Application::current->execute(QString("%1 selection %2").arg(COMMAND_MESSAGE).arg(ask->getMessagePatterns()), ExecuteSourceGui);
-                else                                    Application::current->execute(QString("%1 selection -").arg(COMMAND_MESSAGE), ExecuteSourceGui);
+                if(!ask->appliedToAllTriggers) {
+                    if(ask->getMessagePatterns().length())  Application::current->execute(QString("%1 selection %2").arg(COMMAND_MESSAGE).arg(ask->getMessagePatterns()), ExecuteSourceGui);
+                    else                                    Application::current->execute(QString("%1 selection -").arg(COMMAND_MESSAGE), ExecuteSourceGui);
+                }
             }
     }
 }
@@ -519,7 +521,7 @@ void UiInspector::actionMidiApply() {
         // Parse existing MIDI command
         int existingChannel = 1, existingNote = 60, existingVelocity = 100, existingDuration = 500;
         if(currentMessage.contains("midi://")) {
-            QStringList parts = currentMessage.split(" ", QString::SkipEmptyParts);
+            QStringList parts = currentMessage.split(" ", Qt::SkipEmptyParts);
             // Format: "interval, midi://midi_out/note channel note velocity duration"
             // parts[0]=interval, parts[1]=midi://, parts[2]=channel, parts[3]=note, parts[4]=velocity, parts[5]=duration
             if(parts.count() >= 6) {
@@ -1087,7 +1089,7 @@ void UiInspector::colorComboAdd(QComboBox *spin, QStringList values) {
         QString colorName = value;
         QPixmap icon(32, 32);
         QColor color = Qt::gray;
-        QStringList valueSplit = colorName.split(" ", QString::SkipEmptyParts);
+        QStringList valueSplit = colorName.split(" ", Qt::SkipEmptyParts);
         if(valueSplit.count() == 4) color = QColor(valueSplit.at(0).toUInt(), valueSplit.at(1).toUInt(), valueSplit.at(2).toUInt(), valueSplit.at(3).toUInt());
         else if((colorName.startsWith(Application::colorsPrefix(0))) || (colorName.startsWith(Application::colorsPrefix(1)))) {
             if((!colorName.contains("_gui_")) && (((colorName.startsWith(Application::colorsPrefix(0))) && (Application::colorsPrefix() == Application::colorsPrefix(0))) || ((colorName.startsWith(Application::colorsPrefix(1))) && (Application::colorsPrefix() == Application::colorsPrefix(1))))) {

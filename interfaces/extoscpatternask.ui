@@ -96,6 +96,31 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="applyAllTriggersButton">
+           <property name="minimumSize">
+            <size>
+             <width>170</width>
+             <height>22</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>170</width>
+             <height>27</height>
+            </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string>Apply current message tabs to all triggers in the score</string>
+           </property>
+           <property name="text">
+            <string>APPLY TO ALL TRIGGERS</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -211,11 +236,28 @@
     </hint>
    </hints>
   </connection>
+    <connection>
+     <sender>applyAllTriggersButton</sender>
+     <signal>released()</signal>
+     <receiver>ExtOscPatternAsk</receiver>
+     <slot>actionApplyToAllTriggers()</slot>
+     <hints>
+        <hint type="sourcelabel">
+         <x>391</x>
+         <y>684</y>
+        </hint>
+        <hint type="destinationlabel">
+         <x>452</x>
+         <y>744</y>
+        </hint>
+     </hints>
+    </connection>
  </connections>
  <slots>
   <slot>itemClicked(QListWidgetItem*)</slot>
   <slot>actionAddMessage()</slot>
   <slot>actionRemoveMessage()</slot>
+    <slot>actionApplyToAllTriggers()</slot>
   <slot>help()</slot>
  </slots>
 </ui>

@@ -23,10 +23,7 @@
 
 #include "uirenderpreview.h"
 
-#ifdef USE_GLWIDGET
-UiRenderPreview::UiRenderPreview(QWidget *parent, void *shared) :
-    QGLWidget(QGLFormat(QGL::DoubleBuffer | QGL::DirectRendering), parent, (QGLWidget*)shared) {
-#else
+#if defined(QT6) || defined(USE_OPENGLWIDGET)
 UiRenderPreview::UiRenderPreview(QWidget *parent, void *shared) :
     QOpenGLWidget(parent) {
     Q_UNUSED(shared);
@@ -37,6 +34,9 @@ UiRenderPreview::UiRenderPreview(QWidget *parent, void *shared) :
     //sf.setOption(QSurfaceFormat::DeprecatedFunctions);
     sf.setSamples(4./devicePixelRatioFScale());
     setFormat(sf);
+#else
+UiRenderPreview::UiRenderPreview(QWidget *parent, void *shared) :
+    QGLWidget(QGLFormat(QGL::DoubleBuffer | QGL::DirectRendering), parent, (QGLWidget*)shared) {
 #endif
     setFocusPolicy(Qt::StrongFocus);
     render = 0;
@@ -60,7 +60,11 @@ void UiRenderPreview::paintPreview(NxEventsPropagation *_render, GLuint _renderP
     render               = _render;
     renderSize           = _renderSize;
     renderPreviewTexture = _renderPreviewTexture;
+#if defined(QT6) || defined(USE_OPENGLWIDGET)
+    update();
+#else
     updateGL();
+#endif
 }
 
 void UiRenderPreview::paintGL() {

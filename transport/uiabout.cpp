@@ -29,7 +29,7 @@ UiAbout::UiAbout(QWidget *parent) :
     ui(new Ui::UiAbout) {
     ui->setupUi(this);
     ui->version->setText(tr("version") + " " + QCoreApplication::applicationVersion() + " " + tr("beta"));
-    QRect screen = QApplication::desktop()->screenGeometry();
+    QRect screen = QGuiApplication::primaryScreen()->geometry();
     move(screen.center() - rect().center());
 }
 

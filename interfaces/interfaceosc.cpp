@@ -23,6 +23,7 @@
 
 #include "interfaceosc.h"
 #include "ui_interfaceosc.h"
+#include <algorithm>
 
 InterfaceOsc::InterfaceOsc(QWidget *parent) :
     NetworkInterface(parent),
@@ -142,7 +143,7 @@ void InterfaceOsc::bonjourScan() {
         QMultiHash<QString, QString> params;
         QFile templateFile(file.absoluteFilePath());
         if(templateFile.open(QFile::ReadOnly)) {
-            QStringList templatesLong = QString(templateFile.readAll()).split("\n", QString::SkipEmptyParts);
+            QStringList templatesLong = QString(templateFile.readAll()).split("\n", Qt::SkipEmptyParts);
             foreach(const QString &templateLong, templatesLong) {
                 if(templateLong.startsWith("["))
                     header = templateLong.toLower();
@@ -158,12 +159,10 @@ void InterfaceOsc::bonjourScan() {
 
         //Interfaces
         if(params.contains("name")) {
-            QHashIterator<QString, QString> paramsIterator(params);
-            while (paramsIterator.hasNext()) {
-                paramsIterator.next();
-                if(paramsIterator.key() == "interface") {
+            for(auto it = params.constBegin(); it != params.constEnd(); ++it) {
+                if(it.key() == "interface") {
                     bool toAdd = true;
-                    QStringList paramsSplit = paramsIterator.value().split(" | ");
+                    QStringList paramsSplit = it.value().split(" | ");
                     if(paramsSplit.count() > 1) {
                         QString serviceName = QString("%1 (%2)").arg(params.value("name")).arg(paramsSplit.at(1).trimmed());
                         for(quint16 i = 0 ; i < bonjourServices.count() ; i++)
@@ -208,7 +207,7 @@ void InterfaceOsc::bonjourScan() {
     }
 #endif
 
-    qSort(bonjourServices.begin(), bonjourServices.end(), BonjourService::sort);
+    std::sort(bonjourServices.begin(), bonjourServices.end(), BonjourService::sort);
     QTimer::singleShot(5000, this, SLOT(bonjourScan()));
 }
 void InterfaceOsc::openBonjour() {
@@ -353,7 +352,7 @@ void InterfaceOsc::parseOSC() {
                         else if(argumentsBuffer[indexDataBuffer] == 's') {
                             QString commandValue = "";
                             while((indexBuffer < bufferISize) && (bufferI[indexBuffer]) != 0)
-                                commandValue += bufferI[indexBuffer++];
+                                commandValue += QChar(bufferI[indexBuffer++]);
                             indexBuffer++;
                             while(indexBuffer % 4 != 0)
                                 indexBuffer++;

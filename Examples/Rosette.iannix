@@ -1,4 +1,4 @@
-/*
+ /*
 	IanniX score example: Rosette (c) by IanniX Association
 	This file was written by Guillaume Jacquemin.
 	
@@ -76,3 +76,30 @@ function addCircle(circleIndex, center) {
  */
 
 
+
+//GUI: NEVER EVER REMOVE THIS LINE
+	run("speed 1.42");
+	run("rotate 0 0 0");
+
+
+	run("setmessage 2006 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[62,64,66,67,69,71,73][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2041 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[62,64,66,67,69,71,73][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2020 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[62,64,66,67,69,71,73][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2048 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[62,64,66,67,69,71,73][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2013 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[62,64,66,67,69,71,73][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2034 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[62,64,66,67,69,71,73][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2027 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[62,64,66,67,69,71,73][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+
+
+//GUI: NEVER EVER REMOVE THIS LINE
+
+//INTERFACES: NEVER EVER REMOVE THIS LINE
+
+//INTERFACES: NEVER EVER REMOVE THIS LINE

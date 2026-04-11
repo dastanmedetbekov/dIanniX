@@ -25,6 +25,7 @@
 #define UIVIEW_H
 
 #include <QMainWindow>
+#include <QRect>
 #include "uiinspector.h"
 #include "transport/uiabout.h"
 #include "gui/uihelp.h"
@@ -45,10 +46,22 @@ public:
 private:
     UiAbout *about;
     bool wasInspectorVisible, wasTransportVisible, isFullScreen;
+    qint16 layoutPreset;
+    bool codeViewMode;
+    bool editorWasVisibleBeforeCodeView;
+    QRect workspaceMainGeometry;
+    QRect workspaceEditorGeometry;
+    QByteArray workspaceDockState;
+    bool internalCodeDockVisibilityChange;
     QPoint previousPos;
     QSize previousSize;
-    QDesktopWidget *fullscreenDisplays;
     QList<QPushButton*> fullscreenButtons;
+    QAction *actionLayoutCompact;
+    QAction *actionLayoutDefault;
+    QAction *actionLayoutFocus;
+    QAction *actionWorkspaceView;
+    QAction *actionCodeView;
+    QDockWidget *codeEditorDock;
 
 public:
     UiRender*        getRender() const;
@@ -57,6 +70,12 @@ public:
     UiRenderPreview* getRenderPreview() const;
     bool getPerformancePreview() const;
 public slots:
+    void setLayoutPresetCompact();
+    void setLayoutPresetDefault();
+    void setLayoutPresetFocus();
+    void setWorkspaceView();
+    void setCodeView();
+    void codeDockVisibilityChanged(bool visible);
     void fullscreenDisplaysCountChanged();
     void fullscreenDisplaysSelected();
     void showTimer();
@@ -136,6 +155,10 @@ protected:
     void closeEvent(QCloseEvent *);
 
 private:
+    void applyLayoutPreset(qint16 preset, bool persist = true);
+    void applyViewMode(bool codeMode);
+    void restorePersistentLayout();
+    void savePersistentLayout();
     Ui::UiView *ui;
 };
 

@@ -166,6 +166,8 @@ void NxTrigger::paint() {
 }
 
 void NxTrigger::trig(NxObject *cursor) {
+    lastTrigTime = Transport::currentMSecsSinceEpoch;
+
     if(cursor) {
         colorTrigged = cursor->getCurrentColor();
         colorTrigged.setAlpha(255);
@@ -176,6 +178,13 @@ void NxTrigger::trig(NxObject *cursor) {
     else                trigEnd();
 }
 void NxTrigger::trigEnd() {
+    if(triggerOff > 0) {
+        const qint64 minActiveMs = static_cast<qint64>(triggerOff * 1000.0);
+        const qint64 elapsed = Transport::currentMSecsSinceEpoch - lastTrigTime;
+        if(elapsed < minActiveMs)
+            return;
+    }
+
     NxObject *cursorTriggedTmp = cursorTrigged;
     cursorTrigged = 0;
     if(triggerOff > 0) {

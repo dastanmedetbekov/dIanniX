@@ -62,8 +62,92 @@ function addCurve(index) {
 
 /*
  *	//APP VERSION: NEVER EVER REMOVE THIS LINE
- *	Made with IanniX 0.9.18
+ *	Made with IanniX 0.9.20
  *	//APP VERSION: NEVER EVER REMOVE THIS LINE
  */
 
 
+
+//GUI: NEVER EVER REMOVE THIS LINE
+	run("zoom 46");
+	run("center 0.1855 10.8661");
+	run("speed -5");
+
+
+	run("settimepercent 26 1.7866449415199497");
+
+
+	run("settimepercent 8 3.425364924335051");
+
+
+
+	run("setmessage 2018 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+	run("setsolo 2018 0");
+	run("setmute 2018 0");
+
+	run("setmessage 2020 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2029 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2021 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+	run("setmute 2021 1");
+
+	run("setmessage 2002 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2006 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2012 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2022 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2004 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2025 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2028 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2016 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2001 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2011 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2023 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2026 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2019 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2015 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2000 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2003 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2007 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2009 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2017 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2005 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2014 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2027 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2013 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2024 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2008 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("setmessage 2010 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 {[60,62,64,65,67,69,71][Math.floor(Math.random()*7)]} 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+
+
+//GUI: NEVER EVER REMOVE THIS LINE
+
+//INTERFACES: NEVER EVER REMOVE THIS LINE
+
+//INTERFACES: NEVER EVER REMOVE THIS LINE

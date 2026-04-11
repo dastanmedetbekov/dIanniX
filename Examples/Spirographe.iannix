@@ -88,10 +88,9 @@ function onIncomingMessage(protocol, host, port, destination, values) {
  */
 function madeThroughGUI() {
 //GUI: NEVER EVER REMOVE THIS LINE
-	run("center 13.2502 6.89512");
+	run("speed 3.49");
 	run("rotate 0 0 0");
 	run("zoom 229.332");
-	run("speed 3.49");
 
 
 	run("add curve 1");
@@ -108,48 +107,48 @@ function madeThroughGUI() {
 		run("setpointat current " + i + " " + points1[i].x + " " + points1[i].y + " " + points1[i].z + " " + points1[i].c1x + " " + points1[i].c1y + " " + points1[i].c1z + " " + points1[i].c2x + " " + points1[i].c2y + " " + points1[i].c2z);
 	run("add cursor 2");
 	run("setcurve current lastCurve");
-	run("setpos current 9.0997 5.93672 0");
+	run("setpos current 11.771 6.09734 0");
 	run("setpattern current 0 0 1");
 
-
-	run("add trigger 3");
-	run("setpos current 11.2112 3.40109 0");
-
-	run("add trigger 13");
-	run("setpos current 9.09301 6.41012 0");
-
-	run("add trigger 12");
-	run("setpos current 11.5873 6.41012 0");
-
-	run("add trigger 15");
-	run("setpos current 9.90466 4.84622 0");
-
-	run("add trigger 14");
-	run("setpos current 11.6467 4.29192 0");
-
-	run("add trigger 9");
-	run("setpos current 11.4686 5.69745 0");
-
-	run("add trigger 8");
-	run("setpos current 10.4985 3.75742 0");
-
-	run("add trigger 11");
-	run("setpos current 10.6371 3.30211 0");
-
-	run("add trigger 10");
-	run("setpos current 11.5082 3.12394 0");
-
-	run("add trigger 5");
-	run("setpos current 11.6863 4.72744 0");
 
 	run("add trigger 4");
 	run("setpos current 11.5082 3.97518 0");
 
+	run("add trigger 9");
+	run("setpos current 11.4686 5.69745 0");
+
+	run("add trigger 3");
+	run("setpos current 11.2112 3.40109 0");
+
+	run("add trigger 11");
+	run("setpos current 10.6371 3.30211 0");
+
 	run("add trigger 7");
 	run("setpos current 10.3006 4.29192 0");
 
+	run("add trigger 8");
+	run("setpos current 10.4985 3.75742 0");
+
+	run("add trigger 13");
+	run("setpos current 9.09301 6.41012 0");
+
+	run("add trigger 15");
+	run("setpos current 9.90466 4.84622 0");
+
+	run("add trigger 10");
+	run("setpos current 11.5082 3.12394 0");
+
+	run("add trigger 12");
+	run("setpos current 11.5873 6.41012 0");
+
+	run("add trigger 14");
+	run("setpos current 11.6467 4.29192 0");
+
 	run("add trigger 6");
 	run("setpos current 11.5082 3.75742 0");
+
+	run("add trigger 5");
+	run("setpos current 11.6863 4.72744 0");
 
 
 

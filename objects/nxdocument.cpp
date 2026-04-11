@@ -22,6 +22,62 @@
 */
 
 #include "nxdocument.h"
+#include "scripting/diamed/diamed_compiler.h"
+
+namespace {
+
+bool isDiamedFileSuffix(const QString &suffix) {
+    const QString lowered = suffix.toLower();
+    return (lowered == "diamed") || (lowered == "dmd");
+}
+
+QStringList toEditorMessages(const QVector<Diamed::Diagnostic> &diagnostics) {
+    QStringList messages;
+    foreach(const Diamed::Diagnostic &diagnostic, diagnostics) {
+        QString severity;
+        switch(diagnostic.severity) {
+        case Diamed::Severity::Info: severity = "info"; break;
+        case Diamed::Severity::Warning: severity = "warning"; break;
+        case Diamed::Severity::Error: severity = "error"; break;
+        }
+
+        QString message = QString("%1 %2 [%3:%4] %5")
+            .arg(diagnostic.code)
+            .arg(severity)
+            .arg(diagnostic.line)
+            .arg(diagnostic.column)
+            .arg(diagnostic.message);
+        if(!diagnostic.hint.isEmpty())
+            message += QString(" | hint: %1").arg(diagnostic.hint);
+        messages << message;
+    }
+    return messages;
+}
+
+int firstSeverityLine(const QVector<Diamed::Diagnostic> &diagnostics, Diamed::Severity severity) {
+    foreach(const Diamed::Diagnostic &diagnostic, diagnostics)
+        if(diagnostic.severity == severity)
+            return diagnostic.line;
+    return -1;
+}
+
+bool ensureDelimitedBlock(QString *content, const QString &delimiter, const QString &data) {
+    const int firstDelimiter = content->indexOf(delimiter);
+    if(firstDelimiter < 0) {
+        // Recover from hand-edited scripts where managed markers were deleted.
+        *content += QString("\n%1%2\n%1").arg(delimiter, data);
+        return true;
+    }
+
+    const int secondDelimiter = content->indexOf(delimiter, firstDelimiter + delimiter.length());
+    if(secondDelimiter < 0) {
+        *content += QString("\n%1%2\n%1").arg(delimiter, data);
+        return true;
+    }
+    return false;
+}
+
+}
 
 NxDocument::NxDocument(ApplicationCurrent *parent, UiFileItem *_fileItem) :
     QObject(parent) {
@@ -41,6 +97,9 @@ NxDocument::NxDocument(ApplicationCurrent *parent, UiFileItem *_fileItem) :
     isLoaded = false;
 }
 
+NxDocument::~NxDocument() {
+    delete variable;
+}
 
 const QString NxDocument::serialize() const {
     QString retour;
@@ -128,7 +187,7 @@ void NxDocument::open(bool configure) {
         Application::current->getMainWindow()->setWindowTitle(tr("IanniX") + QString(" / %1").arg(getScriptFile().baseName()));
 
     //Open the script
-    QScriptValue scriptFunctions = scriptEngine.newQObject(this);
+    QJSValue scriptFunctions = scriptEngine.newQObject(this);
     script = scriptEngine.globalObject();
 
     //Map specials features/keywords/functions
@@ -152,13 +211,36 @@ void NxDocument::open(bool configure) {
         scriptFileContent.close();
 
         //Load
-        if(getScriptFile().suffix().toLower() == "nxscore") {
-            QStringList paste = scriptContent.split(COMMAND_END, QString::SkipEmptyParts);
+        const QString suffix = getScriptFile().suffix().toLower();
+        if(suffix == "nxscore") {
+            QStringList paste = scriptContent.split(COMMAND_END, Qt::SkipEmptyParts);
             foreach(const QString & command, paste)
                 Application::current->execute(command, ExecuteSourceGui);
         }
+        else if(isDiamedFileSuffix(suffix) || ((Transport::editor) && (Transport::editor->isDiamedMode()))) {
+            const Diamed::CompileResult compileResult = Diamed::compileForLiveStage(scriptContent);
+            const QStringList diagnostics = toEditorMessages(compileResult.diagnostics);
+
+            int line = firstSeverityLine(compileResult.diagnostics, Diamed::Severity::Error);
+            if(line < 0)
+                line = firstSeverityLine(compileResult.diagnostics, Diamed::Severity::Warning);
+
+            if(diagnostics.isEmpty())
+                Transport::editor->scriptError(QStringList(), -1);
+            else
+                Transport::editor->scriptError(diagnostics, line);
+
+            if(compileResult.ok) {
+                foreach(const QString &command, compileResult.executableCommands)
+                    Application::current->execute(command, ExecuteSourceScript, true);
+                isLoaded = true;
+            }
+            else {
+                isLoaded = false;
+            }
+        }
         else {
-            QScriptValue scriptReturn = scriptEvaluate(scriptContent, false);
+            QJSValue scriptReturn = scriptEvaluate(scriptContent, false);
 
             //Extract function
             if(getScriptFile().suffix().toLower() == "iannix") {
@@ -177,22 +259,35 @@ void NxDocument::open(bool configure) {
 
 
             //Extract errors
-            QStringList errors = scriptEngine.uncaughtExceptionBacktrace();
-            if(scriptReturn.isError())
-                errors << scriptReturn.property("message").toString();
-            if(errors.count())  Transport::editor->scriptError(errors, scriptEngine.uncaughtExceptionLineNumber());
+            QStringList errors;
+            if(scriptReturn.isError()) {
+                errors << scriptReturn.toString();
+                QString lineNumber = scriptReturn.property("lineNumber").toString();
+                QString fileName = scriptReturn.property("fileName").toString();
+                if(!lineNumber.isEmpty())
+                    errors << tr("Line: %1").arg(lineNumber);
+                if(!fileName.isEmpty())
+                    errors << tr("File: %1").arg(fileName);
+            }
+            if(errors.count())  Transport::editor->scriptError(errors, scriptReturn.property("lineNumber").toInt());
             else                Transport::editor->scriptError(QStringList(), -1);
 
 
             //Call the "askUserForParameters()" function
             if(configure) {
-                scriptAskUserForParameters.call(QScriptValue(), QScriptValueList());
+                scriptAskUserForParameters.call({});
                 Application::current->pushSnapshot();
             }
 
-            //Ask variables to user and sets the variable in the script
-            QList<ExtScriptVariable*> variables = variable->ask();
-            if(variable->result()) {
+            // Ask variables only in configure mode; simple reload must still execute script.
+            bool canExecute = true;
+            QList<ExtScriptVariable*> variables;
+            if(configure) {
+                variables = variable->ask();
+                canExecute = variable->result();
+            }
+
+            if(canExecute) {
                 foreach(const ExtScriptVariable *variable, variables) {
                     if(variable->isDefFloat())  script.setProperty(variable->getValue(), variable->getDefFloat());
                     else                        script.setProperty(variable->getValue(), variable->getDefStr());
@@ -200,13 +295,13 @@ void NxDocument::open(bool configure) {
 
                 //Call the functions
                 source = ExecuteSourceScript;
-                scriptMakeWithScript       .call(QScriptValue(), QScriptValueList());
+                scriptMakeWithScript       .call({});
                 source = ExecuteSourceGui;
-                scriptMadeThroughGUI       .call(QScriptValue(), QScriptValueList());
+                scriptMadeThroughGUI       .call({});
                 source = ExecuteSourceNetwork;
-                scriptMadeThroughInterfaces.call(QScriptValue(), QScriptValueList());
+                scriptMadeThroughInterfaces.call({});
                 source = ExecuteSourceScript;
-                scriptAlterateWithScript   .call(QScriptValue(), QScriptValueList());
+                scriptAlterateWithScript   .call({});
 
                 isLoaded = true;
             }
@@ -253,8 +348,22 @@ const QString NxDocument::getContent(bool fromFile) {
     //Locate functions
     NxObjectDispatchProperty::source = ExecuteSourceGui;
     remplaceInFunction(&scoreContent, "//GUI: NEVER EVER REMOVE THIS LINE\n", Application::current->serialize());
+    const bool restoredGuiBlock = ensureDelimitedBlock(&scoreContent, "//GUI: NEVER EVER REMOVE THIS LINE\n", Application::current->serialize());
     NxObjectDispatchProperty::source = ExecuteSourceNetwork;
     remplaceInFunction(&scoreContent, "//INTERFACES: NEVER EVER REMOVE THIS LINE\n", Application::current->serialize());
+    const bool restoredInterfacesBlock = ensureDelimitedBlock(&scoreContent, "//INTERFACES: NEVER EVER REMOVE THIS LINE\n", Application::current->serialize());
+
+    if((!fromFile) && (restoredGuiBlock || restoredInterfacesBlock)) {
+        static bool markerWarningShown = false;
+        if(!markerWarningShown) {
+            markerWarningShown = true;
+            (new UiMessageBox())->display(
+                tr("Score markers restored"),
+                tr("Managed scene blocks were missing from script code and have been restored automatically.\n"
+                   "Please keep lines with 'NEVER EVER REMOVE THIS LINE' to ensure GUI scene changes are saved."));
+        }
+    }
+
     remplaceInFunction(&scoreContent, " *\t//APP VERSION: NEVER EVER REMOVE THIS LINE\n", QString(" *\tMade with IanniX %1").arg(QCoreApplication::applicationVersion()));
 
     return scoreContent;
@@ -285,7 +394,7 @@ const QString NxDocument::loadLibrary() {
     return scriptContent;
 }
 
-QScriptValue NxDocument::scriptEvaluate(const QString &scriptContent, bool _createNewObjectIfExists) {
+QJSValue NxDocument::scriptEvaluate(const QString &scriptContent, bool _createNewObjectIfExists) {
     createNewObjectIfExists = _createNewObjectIfExists;
     return scriptEngine.evaluate(scriptContent + loadLibrary());
 }

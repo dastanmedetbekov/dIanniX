@@ -27,8 +27,8 @@
 #include <QFrame>
 #include <QPainter>
 #include <QPixmap>
-#include <QDesktopWidget>
-#include <QApplication>
+#include <QScreen>
+#include <QGuiApplication>
 
 class UiSplashScreen : public QFrame {
     Q_OBJECT

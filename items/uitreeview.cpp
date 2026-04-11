@@ -69,7 +69,8 @@ void UiTreeView::askImport(bool files) {
             askImport(dialogFile->selectedFiles());
     }
     else {
-        dialogFile->setFileMode(QFileDialog::DirectoryOnly);
+        dialogFile->setFileMode(QFileDialog::Directory);
+        dialogFile->setOption(QFileDialog::ShowDirsOnly, true);
         if(dialogFile->exec())
             askImport(dialogFile->selectedFiles());
     }

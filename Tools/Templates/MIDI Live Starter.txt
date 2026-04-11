@@ -1,0 +1,22 @@
+[General]
+name=MIDI Live Starter
+interface=:57120 | standard output
+
+[Messages]
+midi://midi_out/note 1 60 120 0.40 | C4 clearly audible, channel 1
+midi://midi_out/note 1 64 120 0.35 | E4 clearly audible, channel 1
+midi://midi_out/note 1 67 120 0.35 | G4 clearly audible, channel 1
+midi://midi_out/notef 1 trigger_value_y trigger_value_x 0.20 | trigger y->note, x->velocity (float mapping)
+midi://midi_out/notef 1 cursor_value_y cursor_value_x 0.20 | cursor y->note, x->velocity (float mapping)
+midi://midi_out/note 1 {Math.round(36+cursor_value_y*24)} {Math.round(20+cursor_value_x*107)} 0.20 | math: cursor y -> notes C2..C4, x -> velocity
+midi://midi_out/note 1 {Math.round(48+trigger_value_y*36)} {Math.round(30+trigger_value_x*97)} 0.18 | math: trigger y -> notes C3..C6, x -> velocity
+midi://midi_out/notef 1 {0.2+cursor_value_y*0.7} {0.1+cursor_value_x*0.9} 0.16 | math: normalized note/velocity shaping
+midi://midi_out/ccf 1 1 cursor_value_y | Mod Wheel from cursor y (0..1)
+midi://midi_out/ccf 1 74 cursor_value_y | Filter cutoff macro from cursor y
+midi://midi_out/ccf 1 10 cursor_value_x | Pan from cursor x
+midi://midi_out/cc 1 74 {Math.round(cursor_value_y*127)} | math: integer CC cutoff from cursor y
+midi://midi_out/cc 1 1 {Math.round((1-cursor_value_x)*127)} | math: inverse mod wheel from cursor x
+midi://midi_out/cc 1 64 127 | Sustain ON
+midi://midi_out/cc 1 64 0 | Sustain OFF
+midi://midi_out/pgm 1 12 | Program change to patch 12
+midi://midi_out/bendf 1 cursor_value_x | Pitch bend from cursor x (normalized)

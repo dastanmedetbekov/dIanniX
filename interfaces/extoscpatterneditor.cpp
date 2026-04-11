@@ -23,11 +23,43 @@
 
 #include "extoscpatterneditor.h"
 #include "ui_extoscpatterneditor.h"
+#include <QEvent>
+
+namespace {
+bool useDarkPatternTheme() {
+    if((Application::current) && (Application::current->getMainWindow())) {
+        const QString mainStyle = Application::current->getMainWindow()->styleSheet();
+        if(!mainStyle.trimmed().isEmpty())
+            return true;
+    }
+    return !Application::colorTheme;
+}
+}
 
 ExtOscPatternEditor::ExtOscPatternEditor(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ExtOscPatternEditor) {
     ui->setupUi(this);
+
+    if(useDarkPatternTheme()) {
+        setStyleSheet(styleSheet() +
+            "QFrame#global { background-color: rgb(28,31,40); }"
+            "QLabel { color: rgb(188,196,214); }"
+            "QPlainTextEdit, QComboBox { background-color: rgb(38,43,55); color: rgb(226,232,244); }"
+            "QComboBox QAbstractItemView {"
+            " background-color: rgb(33,38,49);"
+            " color: rgb(232,238,250);"
+            " selection-background-color: rgb(72,96,142);"
+            " selection-color: rgb(255,255,255);"
+            " border: 1px solid rgb(74,85,108);"
+            "}" 
+            "QComboBox::drop-down { background: rgb(61,78,109); }"
+            "QPushButton { border: 1px solid rgb(72,79,95); background-color: rgb(56,62,77); color: rgb(222,229,241); }"
+            "QPushButton:hover { border: 1px solid rgb(115,146,203); background-color: rgb(69,82,111); }"
+            "QPushButton::checked, QPushButton:pressed { background-color: rgb(88,119,184); }"
+        );
+    }
+
     textLock  = false;
     itemLock  = false;
     isTrigger = false;
@@ -69,45 +101,11 @@ ExtOscPatternEditor::ExtOscPatternEditor(QWidget *parent) :
     }
 
 
-    //Templates
-    ui->templates->clear();
-    addTemplate("Templates", true);
-    addTemplate("--");
-    QFileInfoList files = QDir(Application::pathTools.absoluteFilePath() + "/Templates/").entryInfoList(QStringList() << "*.txt", QDir::Files | QDir::NoDotAndDotDot, QDir::Name | QDir::IgnoreCase);
-    files <<              QDir(Application::pathDocuments.absoluteFilePath()   + "/Templates/").entryInfoList(QStringList() << "*.txt", QDir::Files | QDir::NoDotAndDotDot, QDir::Name | QDir::IgnoreCase);
-    bool firstTemplate = true;
-    QString title;
-    foreach(const QFileInfo &file, files) {
-        QString header;
-        QHash<QString, QString> params;
-        QFile templateFile(file.absoluteFilePath());
-        if(templateFile.open(QFile::ReadOnly)) {
-            QStringList templatesLong = QString(templateFile.readAll()).split("\n", QString::SkipEmptyParts);
-            foreach(const QString &templateLong, templatesLong) {
-                if(templateLong.startsWith("["))
-                    header = templateLong.toLower();
-                else if(header == "[general]") {
-                    QStringList templateLongSplit = templateLong.split("=");
-                    if(templateLongSplit.count() > 1) {
-                        QString key = templateLongSplit.at(0).toLower(), value = templateLongSplit.at(1);
-                        params.insert(key, value);
-                        if(key == "name")
-                            title = value;
-                    }
-                }
-                else if(header == "[messages]") {
-                    if(!title.isEmpty()) {
-                        if(!firstTemplate)
-                            addTemplate("--");
-                        firstTemplate = false;
-                        addTemplate(title);
-                        title.clear();
-                    }
-                    addTemplate("          " + templateLong.trimmed(), true);
-                }
-            }
-        }
-    }
+    // Reload templates from disk when opening the chooser so saved edits appear immediately.
+    ui->templates->installEventFilter(this);
+    connect(ui->templates, SIGNAL(activated(int)), SLOT(applyTemplate()));
+    connect(ui->templates, SIGNAL(currentTextChanged(QString)), SLOT(applyTemplate()));
+    reloadTemplates();
 }
 
 ExtOscPatternEditor::~ExtOscPatternEditor() {
@@ -280,7 +278,7 @@ void ExtOscPatternEditor::setPattern(const QVector<QByteArray > & messagePattern
 void ExtOscPatternEditor::setCurrentItem(QComboBox *combo, QLabel *label, const QString &value, bool forceVisible) {
     bool ok = false;
     for(quint16 i = 0 ; i < combo->count() ; i++) {
-        QString val = combo->itemText(i).split(QString(" - "), QString::KeepEmptyParts).at(0);
+        QString val = combo->itemText(i).split(QString(" - "), Qt::KeepEmptyParts).at(0);
         if(val == value) {
             combo->setCurrentIndex(i);
             ok = true;
@@ -297,7 +295,7 @@ void ExtOscPatternEditor::setCurrentItem(QComboBox *combo, QLabel *label, const 
 }
 
 QString ExtOscPatternEditor::getItem(QComboBox *combo, const QString &valDefault, const QString &prefix) const {
-    QString val = combo->currentText().split(QString(" - "), QString::KeepEmptyParts).at(0);
+    QString val = combo->currentText().split(QString(" - "), Qt::KeepEmptyParts).at(0);
     if(!val.isEmpty()) {
         if(!prefix.isEmpty()) {
             if(val.startsWith(prefix))  return val;
@@ -313,19 +311,88 @@ QString ExtOscPatternEditor::getItem(QComboBox *combo, qint32 valDefault) const 
     if(val > 0) return QString::number(val);
     else        return QString::number(valDefault);
 }
-void ExtOscPatternEditor::addTemplate(QString text, bool enabled) {
+void ExtOscPatternEditor::addTemplate(QString text, bool enabled, const QString &payload) {
     if(text.trimmed() == "--")      ui->templates->insertSeparator(ui->templates->count());
-    else                            ui->templates->addItem(text);
+    else                            ui->templates->addItem(text, payload);
     if(!enabled)
         qobject_cast<QStandardItemModel*>(ui->templates->model())->item(ui->templates->count()-1)->setEnabled(false);
+}
+
+void ExtOscPatternEditor::reloadTemplates(const QString &preferredSelection) {
+    const QString selection = preferredSelection.isEmpty() ? ui->templates->currentText() : preferredSelection;
+
+    ui->templates->clear();
+    addTemplate("Templates", true);
+    addTemplate("--");
+
+    QFileInfoList files = QDir(Application::pathTools.absoluteFilePath() + "/Templates/").entryInfoList(QStringList() << "*.txt", QDir::Files | QDir::NoDotAndDotDot, QDir::Name | QDir::IgnoreCase);
+    files <<              QDir(Application::pathDocuments.absoluteFilePath()   + "/Templates/").entryInfoList(QStringList() << "*.txt", QDir::Files | QDir::NoDotAndDotDot, QDir::Name | QDir::IgnoreCase);
+
+    bool firstTemplate = true;
+    QString title;
+    foreach(const QFileInfo &file, files) {
+        QString header;
+        QHash<QString, QString> params;
+        QFile templateFile(file.absoluteFilePath());
+        if(templateFile.open(QFile::ReadOnly)) {
+            QStringList templatesLong = QString(templateFile.readAll()).split("\n", Qt::SkipEmptyParts);
+            foreach(const QString &templateLong, templatesLong) {
+                if(templateLong.startsWith("["))
+                    header = templateLong.toLower();
+                else if(header == "[general]") {
+                    QStringList templateLongSplit = templateLong.split("=");
+                    if(templateLongSplit.count() > 1) {
+                        QString key = templateLongSplit.at(0).toLower(), value = templateLongSplit.at(1);
+                        params.insert(key, value);
+                        if(key == "name")
+                            title = value;
+                    }
+                }
+                else if(header == "[messages]") {
+                    if(!title.isEmpty()) {
+                        if(!firstTemplate)
+                            addTemplate("--");
+                        firstTemplate = false;
+                        addTemplate(title);
+                        title.clear();
+                    }
+                    const QString templateLine = templateLong.trimmed();
+                    const int separatorIndex = templateLine.indexOf('|');
+                    const QString payload = (separatorIndex > 0) ? templateLine.left(separatorIndex).trimmed() : templateLine;
+                    addTemplate("          " + templateLine, true, payload);
+                }
+            }
+        }
+    }
+
+    if(!selection.isEmpty()) {
+        int selectedIndex = ui->templates->findText(selection);
+        if(selectedIndex >= 0)
+            ui->templates->setCurrentIndex(selectedIndex);
+    }
+}
+
+bool ExtOscPatternEditor::eventFilter(QObject *watched, QEvent *event) {
+    if((watched == ui->templates) && (event->type() == QEvent::FocusIn)) {
+        reloadTemplates();
+    }
+    return QWidget::eventFilter(watched, event);
 }
 
 void ExtOscPatternEditor::currentItemChanged() {
     if(!itemLock) {
         textLock = true;
         ui->patternEdit->setPlainText(getPattern());
-        setPattern(ui->patternEdit->toPlainText().replace("\t", " "), false);
         textLock = false;
+
+        // Rebuild field layout only when protocol kind changes.
+        QObject *src = sender();
+        const bool needLayoutRefresh =
+            (src == ui->protocolCombo) ||
+            (src == ui->addressMidiCombo) ||
+            (src == ui->addressOscCombo);
+        if(needLayoutRefresh)
+            setPattern(ui->patternEdit->toPlainText().replace("\t", " "), false);
     }
 }
 void ExtOscPatternEditor::textPatternChanged() {
@@ -369,7 +436,7 @@ void ExtOscPatternEditor::learn() {
     displayBox->display(tr("MIDI/OSC learn"), tr("Please send an event to IanniX\n\nMove a slider on your surface control or press a MIDI note…"));
     QString message = Application::current->waitForMessage();
     if(!message.isEmpty()) {
-        QStringList messageArguments = message.split("\t", QString::SkipEmptyParts);
+        QStringList messageArguments = message.split("\t", Qt::SkipEmptyParts);
         QString messageRecomposed;
         QString valuePrefix = "cursor_";
         if(isTrigger)
@@ -412,9 +479,7 @@ void ExtOscPatternEditor::learn() {
 }
 
 void ExtOscPatternEditor::applyTemplate() {
-    if(ui->templates->currentText().length()) {
-        QStringList temp = ui->templates->currentText().split(" | ");
-        if(temp.count() > 1)
-            ui->patternEdit->setPlainText(temp.first().trimmed());
-    }
+    const QString payload = ui->templates->currentData().toString().trimmed();
+    if(!payload.isEmpty())
+        ui->patternEdit->setPlainText(payload);
 }

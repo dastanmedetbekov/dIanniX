@@ -22,7 +22,7 @@
 */
 
 #include <QFontDatabase>
-#include <QTextCodec>
+#include <QStandardPaths>
 #include "iannixapp.h"
 #include "misc/help.h"
 #include "misc/options.h"
@@ -30,18 +30,21 @@
 
 
 int main(int argc, char *argv[]) {
-#ifdef QT4
+#if defined(QT4)
     QTextCodec::setCodecForTr      (QTextCodec::codecForName("UTF-8"));
     QTextCodec::setCodecForLocale  (QTextCodec::codecForName("UTF-8"));
     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
 #endif
+    // Qt5/Qt6 use UTF-8 by default
+
+#if defined(QT5)
+    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+#elif defined(QT6)
+    QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+#endif
 
     IanniXApp iannixApp(argc, argv);
-
-#ifdef QT5
-    qApp->setAttribute(Qt::AA_UseHighDpiPixmaps);
-    qApp->setAttribute(Qt::AA_ShareOpenGLContexts);
-#endif
 
     //QString locale = QLocale::system().name();
     //QTranslator translator;
@@ -98,10 +101,19 @@ void IanniXApp::launch(int &argc, char **argv) {
 #ifdef QT4
     Application::pathDocuments   = QFileInfo(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation) + "/IanniX");
 #else
+#ifdef QT6
+    Application::pathDocuments   = QFileInfo(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/IanniX");
+#else
     Application::pathDocuments   = QFileInfo(QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).first() + "/IanniX");
+#endif
 #endif
     Application::pathApplication = QFileInfo(pathApplicationDir.absolutePath());
     Application::pathCurrent     = QFileInfo(QDir::currentPath());
+    if(Application::pathApplication.absoluteFilePath().endsWith("/build")) {
+        QDir appDir(Application::pathApplication.absoluteFilePath());
+        appDir.cdUp();
+        Application::pathApplication = QFileInfo(appDir.absolutePath());
+    }
     if((Application::pathApplication.absoluteFilePath().endsWith("/IanniX-build-64")) || (Application::pathApplication.absoluteFilePath().endsWith("/IanniX-build-32")))
         Application::pathApplication = QFileInfo(Application::pathApplication.absoluteFilePath().remove("-build-64").remove("-build-32"));
     if(Application::pathApplication.absoluteFilePath().endsWith("/IanniX-build/release"))
@@ -110,13 +122,13 @@ void IanniXApp::launch(int &argc, char **argv) {
         Application::pathApplication = QFileInfo(Application::pathApplication.absoluteFilePath().remove("-build"));
 
 #ifdef Q_OS_MAC
-    Application::pathExamples = pathApplicationDirM.absolutePath() + "/Resources/Examples";
-    Application::pathTools    = pathApplicationDirM.absolutePath() + "/Resources/Tools";
-    Application::pathPatches  = pathApplicationDirM.absolutePath() + "/Resources/Patches";
+    Application::pathExamples = QFileInfo(pathApplicationDirM.absolutePath() + "/Resources/Examples");
+    Application::pathTools    = QFileInfo(pathApplicationDirM.absolutePath() + "/Resources/Tools");
+    Application::pathPatches  = QFileInfo(pathApplicationDirM.absolutePath() + "/Resources/Patches");
 #else
-    Application::pathExamples = Application::pathApplication.absoluteFilePath() + "/Examples";
-    Application::pathTools    = Application::pathApplication.absoluteFilePath() + "/Tools";
-    Application::pathPatches  = Application::pathApplication.absoluteFilePath() + "/Patches";
+    Application::pathExamples = QFileInfo(Application::pathApplication.absoluteFilePath() + "/Examples");
+    Application::pathTools    = QFileInfo(Application::pathApplication.absoluteFilePath() + "/Tools");
+    Application::pathPatches  = QFileInfo(Application::pathApplication.absoluteFilePath() + "/Patches");
 #endif
 
     qDebug("Paths");
@@ -153,25 +165,9 @@ void IanniXApp::launch(int &argc, char **argv) {
     }
 
     //Add font
-    if(QFontDatabase::addApplicationFont(Application::pathTools.absoluteFilePath() + "/Museo.ttf"))
-        qDebug("Loading IanniX font failed : %s", qPrintable(Application::pathTools.absoluteFilePath() + "/Museo.ttf"));
-    //List of fonts
-    if(false) {
-        qDebug("[FONTS]");
-        QFontDatabase fontDb;
-        QStringList fontList = fontDb.families();
-        foreach(const QString &font, fontList) {
-            qDebug("\tFamille : %s", qPrintable(font));
-            if(true) {
-                qDebug("\t\tFont : %s", qPrintable(font));
-                QStringList styleList = fontDb.styles(font);
-                foreach(const QString &style, styleList) {
-                    int weight = fontDb.weight(font, style);
-                    qDebug("\t\t\t > Style / Graisse %s %d", qPrintable(style), weight);
-                }
-            }
-        }
-    }
+    const QString museoFontPath = Application::pathTools.absoluteFilePath() + "/Museo.ttf";
+    if(QFileInfo::exists(museoFontPath) && QFontDatabase::addApplicationFont(museoFontPath) < 0)
+        qDebug("Loading IanniX font failed : %s", qPrintable(museoFontPath));
 
     if(project.exists()) {
         qDebug("Loading project %s", qPrintable(project.absoluteFilePath()));

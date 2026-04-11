@@ -28,7 +28,7 @@
 #include <QColor>
 #include <QFile>
 #include <QMimeData>
-#include <QTime>
+#include <QElapsedTimer>
 #include <QWheelEvent>
 #include <QGesture>
 #include <QtCore/qmath.h>
@@ -78,7 +78,7 @@ public:
     QString defaultStatusTip, cursorStatusTip, curveStatusTip, triggerStatusTip;
 private:
     NxDocument *documentToRender;
-    QTime renderMeasure;
+    QElapsedTimer renderMeasure;
     UiRenderSelection selectionRect;
     NxObject *selectedHover;
     UiRenderSelection selection;
@@ -174,6 +174,9 @@ public:
     void dropEvent(QDropEvent *event);
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
+private:
+    bool duplicateSelectionForDrag();
+    void triggerSelectedTriggers(int repeatCount);
 public:
     void setZoom(qreal axisZoom);
     void selectionAdd(NxObject *object);

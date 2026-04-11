@@ -372,7 +372,12 @@ bool OpenGlTexture::pushTexture() {
             glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
             if(filename == "manual") {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB , size.width(), size.height(), 0, GL_RGB , GL_UNSIGNED_BYTE, QGLWidget::convertToGLFormat(sourceImage).bits());
+#ifdef USE_OPENGLWIDGET
+                QImage convertedImage = sourceImage.convertToFormat(QImage::Format_RGBA8888).mirrored();
+#else
+                QImage convertedImage = QGLWidget::convertToGLFormat(sourceImage);
+#endif
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB , size.width(), size.height(), 0, GL_RGB , GL_UNSIGNED_BYTE, convertedImage.bits());
                 //if(!verboseTexte.isEmpty())    qDebug("%s (GL_RGB - GL_UNSIGNED_BYTE / %f - %f)", qPrintable(verboseTexte), size.width(), size.height());
             }
             else if(filename == "textureFloat") {
@@ -380,7 +385,12 @@ bool OpenGlTexture::pushTexture() {
                 //if(!verboseTexte.isEmpty())    qDebug("%s (GL_RGBA - GL_DOUBLE / %f - %f)", qPrintable(verboseTexte), size.width(), size.height());
             }
             else {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.width(), size.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, QGLWidget::convertToGLFormat(sourceImage).bits());
+#ifdef USE_OPENGLWIDGET
+                QImage convertedImage = sourceImage.convertToFormat(QImage::Format_RGBA8888).mirrored();
+#else
+                QImage convertedImage = QGLWidget::convertToGLFormat(sourceImage);
+#endif
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.width(), size.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, convertedImage.bits());
                 //if(!verboseTexte.isEmpty())    qDebug("%s (GL_RGBA - GL_UNSIGNED_BYTE / %f - %f)", qPrintable(verboseTexte), size.width(), size.height());
             }
             glDisable(GL_TEXTURE_2D);
@@ -686,7 +696,7 @@ QImage OpenGlDrawing::drawText(const QColor &color, const OpenGlFont &font, cons
 }
 qreal OpenGlDrawing::drawText(QPainter *painter, const QColor &color, const OpenGlFont &font, const QRectF &rect, const QString &_text) {
     if(painter)
-        painter->setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing | QPainter::TextAntialiasing);
+        painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
     QFontMetrics fontMetrics(font);
     QString text = _text;
@@ -695,7 +705,7 @@ qreal OpenGlDrawing::drawText(QPainter *painter, const QColor &color, const Open
 
     if((text.toLower().startsWith("<p")) || (text.toLower().startsWith("<span"))) {
         QTextOption textOption(font.alignementFlags());
-        textOption.setTabStop(40);
+        textOption.setTabStopDistance(40);
 
         QStaticText staticText(text);
         staticText.setTextWidth(rect.width());
@@ -742,7 +752,7 @@ qreal OpenGlDrawing::drawText(QPainter *painter, const QColor &color, const Open
     }
     else {
         QTextOption textOption(font.alignementFlags());
-        textOption.setTabStop(40);
+        textOption.setTabStopDistance(40);
         qreal leading = fontMetrics.leading() + fontMetrics.height() * font. leading() / 100.;
         qreal interparagraph =                  fontMetrics.height() * font.pLeading() / 100.;
         qreal height = 0;

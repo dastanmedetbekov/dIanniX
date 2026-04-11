@@ -1,4 +1,11 @@
+#ifndef UIRENDERSYPHON_H
+#define UIRENDERSYPHON_H
+
+#ifdef USE_OPENGLWIDGET
+#include <QOpenGLWidget>
+#else
 #include <QGLWidget>
+#endif
 
 class UiRenderSyphon {
 public:

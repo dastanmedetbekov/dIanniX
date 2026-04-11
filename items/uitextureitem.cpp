@@ -160,7 +160,7 @@ void UiTextureItem::setData(int column, int role, const QVariant &value) {
         qreal mWidth   = texture->mapping.width();
         qreal mHeight  = texture->mapping.height();
         if(column == 0) name = baseList->renameKey(name, value.toString());
-        if(column == 1) { texture->filename = value.toString(); texture->loaded = false; }
+        if(column == 1) { texture->filename = QFileInfo(value.toString()); texture->loaded = false; }
         if(column == 2) mCenterX =  value.toDouble();
         if(column == 3) mCenterY =  value.toDouble();
         if(column == 4) mWidth   =  value.toDouble();

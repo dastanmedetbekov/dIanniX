@@ -39,12 +39,28 @@
 #include <QStandardItem>
 #include <QFileInfo>
 #include <QTreeWidgetItem>
-#ifdef USE_GLWIDGET
-#include <QGLWidget>
-#include <QGLFormat>
+
+// Determine OpenGL widget type
+#ifndef USE_OPENGLWIDGET
+#ifndef USE_GLWIDGET
+#ifdef QT6
+#define USE_OPENGLWIDGET
 #else
+#ifdef QT5
+#define USE_OPENGLWIDGET
+#else
+#define USE_GLWIDGET
+#endif
+#endif
+#endif
+#endif
+
+#ifdef USE_OPENGLWIDGET
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
+#else
+#include <QGLWidget>
+#include <QGLFormat>
 #endif
 #include "geometry/nxrect.h"
 

@@ -28,7 +28,7 @@ contains(QT_VERSION, "^4.*") {
 } else {
     message("IanniX For QT5")
     DEFINES += QT5
-    QT      += widgets core gui opengl network script xml
+    QT      += widgets core gui opengl network script xml qml
 }
 macx {
     QMAKE_LFLAGS      += -F/Library/Frameworks

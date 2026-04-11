@@ -25,6 +25,7 @@
 #include "objects/nxtrigger.h"
 #include "objects/nxcursor.h"
 #include "objects/nxcurve.h"
+#include <QUrlQuery>
 
 Message::Message() {
     type = MessagesTypeDirect;
@@ -33,7 +34,7 @@ Message::Message() {
     isTransportMessage = false;
 }
 
-void Message::setUrl(QString url, QScriptEngine *_messageScriptEngine, const QHash<QString,UiString> &aliases) {
+void Message::setUrl(QString url, QJSEngine *_messageScriptEngine, const QHash<QString,UiString> &aliases) {
     QHashIterator<QString,UiString> aliasIterator(aliases);
     while (aliasIterator.hasNext()) {
         aliasIterator.next();
@@ -41,7 +42,7 @@ void Message::setUrl(QString url, QScriptEngine *_messageScriptEngine, const QHa
     }
     setUrl(QUrl(url, QUrl::TolerantMode), _messageScriptEngine);
 }
-void Message::setUrl(const QUrl & url, QScriptEngine *_messageScriptEngine) {
+void Message::setUrl(const QUrl & url, QJSEngine *_messageScriptEngine) {
     messageScriptEngine = _messageScriptEngine;
     if(messageScriptEngine)
         messageScriptValue = messageScriptEngine->globalObject();
@@ -58,9 +59,9 @@ void Message::setUrl(const QUrl & url, QScriptEngine *_messageScriptEngine) {
 
     if(scheme == "osc") {
         type = MessagesTypeOsc;
-        host = urlMessage.host().toLower();
+        host = QHostAddress(urlMessage.host().toLower());
         port = urlMessage.port();
-        address += urlMessage.path();
+        address += urlMessage.path().toUtf8();
         address += (char)0;
         pad(address);
         typetag += ',';
@@ -70,11 +71,11 @@ void Message::setUrl(const QUrl & url, QScriptEngine *_messageScriptEngine) {
     }
     else if(scheme == "tcp") {
         type = MessagesTypeTcp;
-        address += urlMessage.authority() + urlMessage.path();
+        address += (urlMessage.authority() + urlMessage.path()).toUtf8();
     }
     else if(scheme == "udp") {
         type = MessagesTypeUdp;
-        host = urlMessage.host();
+        host = QHostAddress(urlMessage.host());
         port = urlMessage.port();
     }
     else if(scheme == "serial") {
@@ -616,20 +617,20 @@ bool Message::addString(QString str, const QString & name, quint16) {
     verboseValues << str;
     hasAdd = true;
     if(type == MessagesTypeOsc) {
+#ifdef QT6
+        arguments += str.toUtf8();
+#else
         arguments += str;
+#endif
         arguments += (char)0;
         pad(arguments);
         typetag += 's';
         return true;
     }
     else if(type == MessagesTypeHttp) {
-#ifdef QT4
-        urlMessage.addQueryItem(name, str);
-#else
         QUrlQuery urlQuery(urlMessage);
         urlQuery.addQueryItem(name, str);
         urlMessage.setQuery(urlQuery);
-#endif
         return true;
     }
     else if(type == MessagesTypeTcp) {

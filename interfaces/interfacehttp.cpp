@@ -23,6 +23,8 @@
 
 #include "interfacehttp.h"
 #include "ui_interfacehttp.h"
+#include <QUrlQuery>
+#include <QRegularExpression>
 
 InterfaceHttp::InterfaceHttp(QWidget *parent) :
     NetworkInterface(parent),
@@ -91,10 +93,10 @@ void InterfaceHttp::webSocketsNewConnection() {
 void InterfaceHttp::webSocketsProcessMessage(const QString &message) {
     WebSocket *webSocket = qobject_cast<WebSocket *>(sender());
     if(webSocket) {
-        QStringList commandItems = message.split(COMMAND_END, QString::SkipEmptyParts);;
+        QStringList commandItems = message.split(COMMAND_END, Qt::SkipEmptyParts);;
         QString response;
         foreach(const QString & command, commandItems)
-            response += MessageManager::incomingMessage(MessageIncomming("http", webSocket->peerAddress().toString(), webSocket->peerPort(), "", command, command.split(" ", QString::SkipEmptyParts)), true, (command != "goto"));
+            response += MessageManager::incomingMessage(MessageIncomming("http", webSocket->peerAddress().toString(), webSocket->peerPort(), "", command, command.split(" ", Qt::SkipEmptyParts)), true, (command != "goto"));
         if(!response.isEmpty())
             webSocket->send(response);
     }
@@ -149,9 +151,9 @@ void InterfaceHttp::parseRequest(QNetworkReply *reply) {
     if(!enable)
         return;
 
-    QStringList commandItems = QString(reply->readAll()).split(COMMAND_END, QString::SkipEmptyParts);;
+    QStringList commandItems = QString(reply->readAll()).split(COMMAND_END, Qt::SkipEmptyParts);;
     foreach(const QString & command, commandItems)
-        MessageManager::incomingMessage(MessageIncomming("http", reply->url().host(), reply->url().port(), reply->url().path(), command, command.split(" ", QString::SkipEmptyParts)));
+        MessageManager::incomingMessage(MessageIncomming("http", reply->url().host(), reply->url().port(), reply->url().path(), command, command.split(" ", Qt::SkipEmptyParts)));
 }
 
 
@@ -180,7 +182,7 @@ void InterfaceHttp::parseSocket(QTcpSocket *socket) {
     if(!enable)
         return;
 
-    QStringList tokens = QString(socket->readLine()).split(QRegExp("[ \r\n][ \r\n]*"));
+    QStringList tokens = QString(socket->readLine()).split(QRegularExpression("[ \\r\\n][ \\r\\n]*"), Qt::SkipEmptyParts);
     if((tokens.count() > 1) && (tokens.at(0) == "GET")) {
         QUrl url(tokens.at(1));
 
@@ -189,11 +191,7 @@ void InterfaceHttp::parseSocket(QTcpSocket *socket) {
         picFormat.first = "png";
         picFormat.second = -1;
         bool isPic = false, isSync = false;
-#ifdef QT4
-        QList< QPair<QString, QString> > tokens = url.queryItems();
-#else
         QList< QPair<QString, QString> > tokens = QUrlQuery(url.query()).queryItems();
-#endif
         for(quint16 index = 0 ; index < tokens.count() ; index++) {
             QString first = tokens.at(index).first.toLower();
             if((first == "png") || (first == "jpg") || (first == "mjpg")) {
@@ -217,7 +215,7 @@ void InterfaceHttp::parseSocket(QTcpSocket *socket) {
 
             QString response;
             foreach(const QString & command, commands)
-                response += MessageManager::incomingMessage(MessageIncomming("http", socket->peerAddress().toString(), socket->peerPort(), url.path(), command, command.split(" ", QString::SkipEmptyParts)), true, (command != "goto")) + "\n";
+                response += MessageManager::incomingMessage(MessageIncomming("http", socket->peerAddress().toString(), socket->peerPort(), url.path(), command, command.split(" ", Qt::SkipEmptyParts)), true, (command != "goto")) + "\n";
 
             os << response;
         }

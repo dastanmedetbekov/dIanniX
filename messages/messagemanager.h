@@ -27,6 +27,7 @@
 #include "messages/message.h"
 #include "messagemanagerlog.h"
 #include "messagemanagerlogmini.h"
+#include <QJSEngine>
 
 class MessageManager : public QObject {
     Q_OBJECT
@@ -40,12 +41,12 @@ public:
     static Message message;
     static QHash<MessagesType, NetworkInterface*> interfaces;
     static QHash<QString, UiString> aliases;
-    static QScriptEngine *scriptEngine;
+    static QJSEngine *scriptEngine;
 private:
     static MessageManagerLog* messageManagerLog;
 
 public:
-    static void setInterfaces(MessageDispatcher *_dispatcher = 0, QScriptEngine *_scriptEngine = 0, QLayout *logWidget = 0, QLayout *logMiniWidget = 0);
+    static void setInterfaces(MessageDispatcher *_dispatcher = 0, QJSEngine *_scriptEngine = 0, QLayout *logWidget = 0, QLayout *logMiniWidget = 0);
     static void addNetworkInterface(MessagesType type, NetworkInterface *networkInterface);
     static void deleteNetworkInterface();
     static inline void setLogVisibility(bool logVisible) {

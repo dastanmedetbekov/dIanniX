@@ -1,0 +1,69 @@
+run("add trigger auto")
+run("setwidth 1 100");
+
+//GUI: NEVER EVER REMOVE THIS LINE
+	run("center -0.346554 1.59753");
+
+
+	run("add cursor 13");
+	run("setcurve current lastCurve");
+	run("setpos current -2.00627 3.03403 0");
+	run("settimepercent current 0.40947006781816997");
+	run("setpattern current 0 0 1");
+
+	run("add cursor 14");
+	run("setcurve current lastCurve");
+	run("setpos current 1.58499 2.56211 0");
+	run("settimepercent current 0.04893975814633494");
+	run("setpattern current 0 0 1");
+
+	run("add cursor 15");
+	run("setcurve current lastCurve");
+	run("setpos current 1.50305 1.13692 0");
+	run("settimepercent current 0.9327784828847918");
+	run("setpattern current 0 0 1");
+
+	run("add cursor 17");
+	run("setcurve current lastCurve");
+	run("setpos current -0.438448 -0.0398 0");
+	run("settimepercent current 0.7406640432591104");
+	run("setpattern current 0 0 1");
+
+
+	run("add curve 18");
+	run("setpos current -1.8173 4.34038 0");
+	var points18 = [
+		{x: 0, y: 0, z: 0, c1x: 0, c1y: 0, c1z: 0, c2x: 0, c2y: 0, c2z: 0},
+		{x: 1.55527, y: -2.11313, z: 0, c1x: 0, c1y: 0, c1z: 0, c2x: 0, c2y: 0, c2z: 0},
+		{x: 1.92718, y: -4.90247, z: 0, c1x: 0, c1y: 0, c1z: 0, c2x: 0, c2y: 0, c2z: 0},
+		{x: 3.81209, y: -4.44603, z: 0, c1x: 0, c1y: 0, c1z: 0, c2x: 0, c2y: 0, c2z: 0},
+		{x: 2.13849, y: -3.01756, z: 0, c1x: 0, c1y: 0, c1z: 0, c2x: 0, c2y: 0, c2z: 0},
+		{x: -0.321196, y: -4.26853, z: 0, c1x: 0, c1y: 0, c1z: 0, c2x: 0, c2y: 0, c2z: 0},
+		{x: 0.710013, y: 0, z: 0, c1x: 0, c1y: 0, c1z: 0, c2x: 0, c2y: 0, c2z: 0},
+		{x: 4.12484, y: -1.3186, z: 0, c1x: 0, c1y: 0, c1z: 0, c2x: 0, c2y: 0, c2z: 0},
+		{x: 2.57802, y: -1.58062, z: 0, c1x: 0, c1y: 0, c1z: 0, c2x: 0, c2y: 0, c2z: 0},
+		{x: 1.78349, y: 0.46489, z: 0, c1x: 0, c1y: 0, c1z: 0, c2x: 0, c2y: 0, c2z: 0},
+		{x: 0, y: 0, z: 0, c1x: 0, c1y: 0, c1z: 0, c2x: 0, c2y: 0, c2z: 0},
+	];
+	for(var i = 0 ; i < points18.length ; i++)
+		run("setpointat current " + i + " " + points18[i].x + " " + points18[i].y + " " + points18[i].z + " " + points18[i].c1x + " " + points18[i].c1y + " " + points18[i].c1z + " " + points18[i].c2x + " " + points18[i].c2y + " " + points18[i].c2z);
+	run("add cursor 19");
+	run("setcurve current lastCurve");
+	run("setpos current -1.78862 4.34786 0");
+	run("setpattern current 0 0 1");
+
+
+	run("setmessage 1 1, osc://ip_out:port_out/trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id cursor_group_id , midi://midi_out/note 1 63 127 1 , tcp:// trigger trigger_id trigger_group_id trigger_value_x trigger_value_y trigger_value_z trigger_xPos trigger_yPos trigger_zPos cursor_id ,");
+
+	run("add trigger 16");
+	run("setpos current -1.29194 3.67555 0");
+	run("setwidth current 100");
+	run("setmessage current 1, midi://midi_out/note 1 60 127 ,");
+
+
+
+//GUI: NEVER EVER REMOVE THIS LINE
+
+//INTERFACES: NEVER EVER REMOVE THIS LINE
+
+//INTERFACES: NEVER EVER REMOVE THIS LINE

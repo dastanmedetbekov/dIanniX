@@ -26,10 +26,15 @@
 
 #include <QMainWindow>
 #include <QFileInfo>
-#include <QDesktopWidget>
+#include <QScreen>
+#include <QGuiApplication>
 #include <QMessageBox>
 #include <QFile>
 #include <QTextCursor>
+#include <QComboBox>
+#include <QCompleter>
+#include <QStringListModel>
+#include <QHash>
 #include "misc/help.h"
 #include "misc/application.h"
 
@@ -42,8 +47,18 @@ class UiEditor : public QMainWindow {
     Q_OBJECT
 
 public:
+    enum class LanguageMode {
+        Legacy = 0,
+        Diamed = 1
+    };
+
+public:
     explicit UiEditor(QWidget *parent = 0);
     ~UiEditor();
+    void setEmbeddedMode(bool enabled) { embeddedMode = enabled; }
+    void setLanguageMode(LanguageMode mode);
+    LanguageMode getLanguageMode() const { return languageMode; }
+    bool isDiamedMode() const { return languageMode == LanguageMode::Diamed; }
 
 public:
     void setContent(const QString &content, bool raiseWindow);
@@ -52,22 +67,46 @@ public:
 signals:
     void askSave();
     void askRefresh();
+    void askLiveReload();
+    void embeddedCloseRequested();
 
 public slots:
     void save()     { emit(askSave()); }
     void refresh()  { emit(askRefresh()); }
+    void liveReload() { emit(askLiveReload()); }
     void cursorChanged();
     void scriptError(const QStringList &errors, qint16 line);
+    void languageModeChanged(int index);
 
 public:
     QAction *toolbarButton;
     bool firstLaunch;
+    bool embeddedMode;
+    LanguageMode languageMode;
 protected:
+    bool eventFilter(QObject *obj, QEvent *event);
     void changeEvent(QEvent *e);
     void showEvent(QShowEvent *);
     void closeEvent(QCloseEvent *);
 private:
+    void applyTheme();
+    void setupLanguageControls();
+    void setupAutoCompletion();
+    void rebuildCompletionEntries();
+    void showCompletion(const QString &prefix, bool forceShowAll, bool commandOnly);
+    QString currentWordUnderCursor() const;
+    bool isInsideCommandString() const;
     Ui::UiEditor *ui;
+    QComboBox *languageModeCombo;
+    QAction *actionLiveReload;
+    QCompleter *completion;
+    QStringListModel *completionModel;
+    QHash<QString, QString> completionInsertions;
+    QStringList commandCompletionEntries;
+    QStringList richCompletionEntries;
+
+private slots:
+    void insertCompletion(const QString &selectedItem);
 };
 
 #endif // UIEDITOR_H

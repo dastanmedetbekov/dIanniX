@@ -321,7 +321,7 @@ void UiString::setAction(QSpinBox *_spin, const QString &_settingName, bool trig
     if(spin) {
         if(changeUi)
             applyToGui();
-        spin->connect(spin, SIGNAL(valueChanged(QString)), this, SLOT(guiTrigged(QString)));
+        spin->connect(spin, SIGNAL(textChanged(QString)), this, SLOT(guiTrigged(QString)));
         if(trigEvent)
             guiTrigged();
     }
@@ -360,7 +360,7 @@ void UiString::setAction(QComboBox *_combo, const QString &_settingName, bool tr
     if(combo) {
         if(changeUi)
             applyToGui();
-        combo->connect(combo, SIGNAL(currentIndexChanged(QString)), this, SLOT(guiTrigged(QString)));
+        combo->connect(combo, SIGNAL(currentTextChanged(QString)), this, SLOT(guiTrigged(QString)));
         combo->connect(combo, SIGNAL(editTextChanged(QString)),     this, SLOT(guiTrigged(QString)));
         if(trigEvent)
             guiTrigged();

@@ -81,7 +81,7 @@ bool InterfaceTcpServer::send(const Message &message, QStringList *messageSent) 
             union { float f; char ch[4]; } u;
             u.f = valeur.toFloat(&isFloat);
             if(!isFloat)
-                bytes.append(valeur.toString());
+                bytes.append(valeur.toString().toUtf8());
             else {
                 bytes.append(u.ch[0]);
                 bytes.append(u.ch[1]);
@@ -169,7 +169,7 @@ void InterfaceTcp::parseXml(const QDomDocument &xmlDoc, QTcpSocket *socket) {
                 QDomElement xmlArgument = xmlOscArgument.toElement();
                 if((!xmlArgument.isNull()) && (xmlArgument.tagName().toUpper() == "ARGUMENT")) {
                     QString command = xmlArgument.attribute("VALUE").replace("%20", " ");
-                    MessageManager::incomingMessage(MessageIncomming("tcp", socket->peerAddress().toString(), socket->peerPort(), destination, command, command.split(" ", QString::SkipEmptyParts)));
+                    MessageManager::incomingMessage(MessageIncomming("tcp", socket->peerAddress().toString(), socket->peerPort(), destination, command, command.split(" ", Qt::SkipEmptyParts)));
                 }
                 xmlOscArgument = xmlOscArgument.nextSibling();
             }

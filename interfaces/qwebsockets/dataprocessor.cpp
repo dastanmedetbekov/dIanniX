@@ -3,8 +3,12 @@
 #include <QTcpSocket>
 #include <QtEndian>
 #include <limits.h>
+#ifdef QT6
+#include <QtCore/QStringConverter>
+#else
 #include <QTextCodec>
 #include <QTextDecoder>
+#endif
 
 const quint64 MAX_FRAME_SIZE_IN_BYTES = INT_MAX - 1;
 const quint64 MAX_MESSAGE_SIZE_IN_BYTES = INT_MAX - 1;
@@ -436,9 +440,13 @@ DataProcessor::DataProcessor(QObject *parent) :
 	m_mask(0),
 	m_binaryMessage(),
 	m_textMessage(),
-	m_payloadLength(0),
+	m_payloadLength(0)
+#ifdef QT6
+	,m_utf8Decoder(QStringDecoder::Utf8)
+#else
 	m_pConverterState(0),
 	m_pTextCodec(QTextCodec::codecForName("UTF-8"))
+#endif
 {
 	clear();
 }
@@ -446,11 +454,13 @@ DataProcessor::DataProcessor(QObject *parent) :
 DataProcessor::~DataProcessor()
 {
 	clear();
+#ifndef QT6
 	if (m_pConverterState)
 	{
 		delete m_pConverterState;
 		m_pConverterState = 0;
 	}
+#endif
 }
 
 void DataProcessor::process(QTcpSocket *pSocket)
@@ -496,6 +506,11 @@ void DataProcessor::process(QTcpSocket *pSocket)
 
 				if (m_opCode == WebSocketProtocol::OC_TEXT)
 				{
+				#ifdef QT6
+					QString frameTxt = m_utf8Decoder.decode(frame.getPayload());
+					m_textMessage.append(frameTxt);
+					Q_EMIT textFrameReceived(frameTxt, frame.isFinalFrame());
+				#else
 					QString frameTxt = m_pTextCodec->toUnicode(frame.getPayload().constData(), frame.getPayload().size(), m_pConverterState);
 					bool failed = (m_pConverterState->invalidChars != 0) || (frame.isFinalFrame() && (m_pConverterState->remainingChars != 0));
 					if (failed)
@@ -509,6 +524,7 @@ void DataProcessor::process(QTcpSocket *pSocket)
 						m_textMessage.append(frameTxt);
 						Q_EMIT textFrameReceived(frameTxt, frame.isFinalFrame());
 					}
+				#endif
 				}
 				else
 				{
@@ -551,6 +567,10 @@ void DataProcessor::clear()
 	m_binaryMessage.clear();
 	m_textMessage.clear();
 	m_payloadLength = 0;
+
+#ifdef QT6
+	m_utf8Decoder.resetState();
+#else
 	if (m_pConverterState)
 	{
 		if ((m_pConverterState->remainingChars != 0) || (m_pConverterState->invalidChars != 0))
@@ -563,4 +583,5 @@ void DataProcessor::clear()
 	{
 		m_pConverterState = new QTextCodec::ConverterState(QTextCodec::ConvertInvalidToNull | QTextCodec::IgnoreHeader);
 	}
+#endif
 }

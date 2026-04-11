@@ -26,7 +26,8 @@
 
 #include <QDesktopServices>
 #include <QDialog>
-#include <QDesktopWidget>
+#include <QScreen>
+#include <QGuiApplication>
 #include "objects/nxobject.h"
 #include "interfaces/extoscpatterneditor.h"
 #include "messages/message.h"
@@ -51,11 +52,13 @@ protected:
 
 public:
     bool onlyCurves;
+    bool appliedToAllTriggers;
     const QString getMessagePatterns() const;
 
 public slots:
     void actionAddMessage();
     void actionRemoveMessage();
+    void actionApplyToAllTriggers();
     void actionFieldFocus(QComboBox*,QPlainTextEdit*);
 
 private:

@@ -26,7 +26,8 @@
 
 #include <QDialog>
 #include <QDialogButtonBox>
-#include <QDesktopWidget>
+#include <QScreen>
+#include <QGuiApplication>
 #include <QMessageBox>
 
 namespace Ui {

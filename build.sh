@@ -19,6 +19,16 @@ if [ "$1" = "cmake" ]; then
     exit 0
 fi
 
+if [ "$1" = "qt6" ]; then
+    echo "Building with Qt6 (CMake)..."
+    mkdir -p $BUILD_DIR
+    cd $BUILD_DIR
+    cmake ..
+    make -j$(nproc)
+    echo "Built with Qt6 in $BUILD_DIR/"
+    exit 0
+fi
+
 mkdir -p $BUILD_DIR
 qmake IanniX.pro
 make -j$(nproc)

@@ -41,7 +41,8 @@
 #include <QDomDocument>
 #include <QFileOpenEvent>
 #include <QDesktopServices>
-#include <QWindow>
+#include <QThread>
+#include <QRandomGenerator>
 #include <time.h>
 #include "misc/application.h"
 #include "gui/uimessagebox.h"
@@ -68,6 +69,7 @@ private:
     QSettings *iniSettings, *globalSettings;
 public:
     explicit IanniX(const QString &_projectToLoad = "", QObject *parent = 0);
+    ~IanniX();
     void readyToStart();
     inline void dispatchProperty(const QString &_property, const QVariant &value)  {    dispatchProperty(qPrintable(_property), value); }
     inline const QVariant getProperty(const QString &_property) const              {    return getProperty(qPrintable(_property));      }
@@ -139,7 +141,7 @@ public:
 private:
     Message message;
     QHash<QByteArray, Message> messagesCache;
-    QScriptEngine messageScriptEngine;
+    QJSEngine messageScriptEngine;
 public slots:
     const QVariant execute(const MessageIncomming & command, bool createNewObjectIfExists = false, bool needOutput = false);
     const QVariant execute(const QString & command, ExecuteSource source, bool createNewObjectIfExists = false, bool needOutput = false);
@@ -186,7 +188,7 @@ private slots:
     void timerTick();
     void timerTick(bool force);
     void timerTick(qreal delta);
-    void timerTrig(void *object, bool force = false);
+    void timerTrig(void *object, bool force = false) override;
 
 
     //USER INTERFACE

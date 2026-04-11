@@ -11,13 +11,29 @@
 #include <QUrl>
 #include <QFile>
 #include <QPainter>
-#ifdef USE_GLWIDGET
-#include <QGLWidget>
-#include <QGLFormat>
+
+// Determine OpenGL widget type
+#ifndef USE_OPENGLWIDGET
+#ifndef USE_GLWIDGET
+#ifdef QT6
+#define USE_OPENGLWIDGET
 #else
-#include <QGLWidget>
+#ifdef QT5
+#define USE_OPENGLWIDGET
+#else
+#define USE_GLWIDGET
+#endif
+#endif
+#endif
+#endif
+
+#ifdef USE_OPENGLWIDGET
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
+#include <QOpenGLFunctions_2_0>
+#else
+#include <QGLWidget>
+#include <QGLFormat>
 #endif
 #ifdef VLC_INSTALLED
 #include "drivers/vlc.h"
@@ -59,7 +75,7 @@ public:
 public:
     static inline const OpenGlFont getFont(const QString &family, int options = Qt::AlignCenter, quint16 size = 16, qreal leading = 100, qreal spacing = 100, qreal pLeading = 0, QFont::Stretch strech = QFont::Unstretched, QFont::Weight graisse = QFont::Normal, bool italic = false) {
         OpenGlFont font;
-        QStringList familySplit = family.split("|", QString::SkipEmptyParts);
+        QStringList familySplit = family.split("|", Qt::SkipEmptyParts);
         if(familySplit.count() > 1) {
             font.setFamily   (familySplit.at(0));
 #ifndef IANNIX_32

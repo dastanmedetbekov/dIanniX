@@ -29,7 +29,7 @@ UiSplashScreen::UiSplashScreen(const QPixmap &_pixmap) :
     setAttribute(Qt::WA_TranslucentBackground);
     setFixedSize(pixmap.size()/2);
 
-    QRect screen = QApplication::desktop()->screenGeometry();
+    QRect screen = QGuiApplication::primaryScreen()->geometry();
     move(screen.center() - rect().center());
 
     QFont textFont("Arial");

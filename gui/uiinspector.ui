@@ -218,7 +218,7 @@ QSlider::handle:horizontal {
 
 
 QSplitter::handle {
-	background: 							rgb(255, 255, 255, 30);
+    background: 							rgba(255, 255, 255, 30);
 }
 QSplitter::handle:pressed {
 	background: 							rgb(0, 187, 255);
@@ -5600,7 +5600,7 @@ padding: 0px;</string>
   </connection>
   <connection>
    <sender>colorCombo1</sender>
-   <signal>currentIndexChanged(QString)</signal>
+    <signal>currentTextChanged(QString)</signal>
    <receiver>UiInspector</receiver>
    <slot>actionColor()</slot>
    <hints>
@@ -5616,7 +5616,7 @@ padding: 0px;</string>
   </connection>
   <connection>
    <sender>colorCombo2</sender>
-   <signal>currentIndexChanged(QString)</signal>
+    <signal>currentTextChanged(QString)</signal>
    <receiver>UiInspector</receiver>
    <slot>actionColor()</slot>
    <hints>
@@ -5920,7 +5920,7 @@ padding: 0px;</string>
   </connection>
   <connection>
    <sender>speedFSpin</sender>
-   <signal>valueChanged(QString)</signal>
+    <signal>valueChanged(double)</signal>
    <receiver>UiInspector</receiver>
    <slot>actionInfo()</slot>
    <hints>
@@ -6016,7 +6016,7 @@ padding: 0px;</string>
   </connection>
   <connection>
    <sender>offsetEndSpin</sender>
-   <signal>valueChanged(QString)</signal>
+    <signal>valueChanged(double)</signal>
    <receiver>UiInspector</receiver>
    <slot>actionInfo()</slot>
    <hints>
@@ -6512,7 +6512,7 @@ padding: 0px;</string>
   </connection>
   <connection>
    <sender>colorComboMultiply</sender>
-   <signal>currentIndexChanged(QString)</signal>
+    <signal>currentTextChanged(QString)</signal>
    <receiver>UiInspector</receiver>
    <slot>actionColor()</slot>
    <hints>
