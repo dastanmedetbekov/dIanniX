@@ -131,7 +131,7 @@ const QString NxDocument::serialize() const {
     }
 
     //Browse groups
-    foreach(NxGroup *group, groups)
+    for (NxGroup *group : groups)
         retour += group->serialize();
 
     return retour;
@@ -214,7 +214,7 @@ void NxDocument::open(bool configure) {
         const QString suffix = getScriptFile().suffix().toLower();
         if(suffix == "nxscore") {
             QStringList paste = scriptContent.split(COMMAND_END, Qt::SkipEmptyParts);
-            foreach(const QString & command, paste)
+            for (const QString & command : paste)
                 Application::current->execute(command, ExecuteSourceGui);
         }
         else if(isDiamedFileSuffix(suffix) || ((Transport::editor) && (Transport::editor->isDiamedMode()))) {
@@ -383,7 +383,7 @@ const QString NxDocument::loadLibrary() {
     QString scriptContent = "";
 
     QFileInfoList scriptDirs = QDir(Application::pathTools.absoluteFilePath() + "/").entryInfoList(QStringList() << "*.js", QDir::Files | QDir::NoDotAndDotDot);
-    foreach(const QFileInfo & scriptFile, scriptDirs) {
+    for (const QFileInfo & scriptFile : scriptDirs) {
         QFile scriptFileContent(scriptFile.absoluteFilePath());
         if(scriptFileContent.open(QIODevice::ReadOnly | QIODevice::Text)) {
             //Read file

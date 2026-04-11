@@ -175,7 +175,7 @@ bool UiFileItem::askForMove(UiSyncItem*, UiSyncItem *_dest) {
 }
 
 bool UiFileItem::askForPaste(UiSyncItem*, const QList<UiSyncItem *> &selections) {
-    foreach(UiSyncItem* selection, selections) {
+    for (UiSyncItem *selection : selections) {
         UiFileItem *item = (UiFileItem*)selection, *creationItem = (UiFileItem*)parentItem;
         if(item->filename.file.isFile()) {
             if((filename.file.isDir()) && (item->filename.file != filename.file))

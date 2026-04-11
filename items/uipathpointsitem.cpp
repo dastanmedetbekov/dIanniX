@@ -67,7 +67,7 @@ void UiPathPointsItems::update() {
     }
 
     //Remove exitings
-    foreach(UiPathPointsItem *childrenItem, childrenItems)
+    for (UiPathPointsItem *childrenItem : childrenItems)
         delete childrenItem;
 
     treeWidget()->sortItems(0, Qt::AscendingOrder);
@@ -126,7 +126,7 @@ bool UiPathPointsItems::askForDeletion(UiSyncItem *i, bool) {
     return true;
 }
 bool UiPathPointsItems::askForPaste(UiSyncItem*, const QList<UiSyncItem*> &listItems) {
-    foreach(UiSyncItem *listItem, listItems)
+    for (UiSyncItem *listItem : listItems)
         generateItem(listItem);
     update();
     return false;

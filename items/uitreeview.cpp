@@ -50,7 +50,7 @@ UiTreeView::~UiTreeView() {
 
 QList<UiSyncItem*> UiTreeView::getSelection(bool shouldHaveParent) {
     QList<UiSyncItem*> retour;
-    foreach(QTreeWidgetItem *item, ui->view->selectedItems()) {
+    for (QTreeWidgetItem *item : ui->view->selectedItems()) {
         if(((shouldHaveParent) && (((UiSyncItem*)item)->parentItem)) || (!shouldHaveParent))
             retour << (UiSyncItem*)item;
     }
@@ -81,7 +81,7 @@ void UiTreeView::askImport(QStringList filesStr) {
     foreach(const QString &file, filesStr)
         files << QFileInfo(file);
     QList<UiSyncItem*> items = getSelection(false);
-    foreach(UiSyncItem* item, items) {
+    for (UiSyncItem *item : items) {
         item->askForImport(item, files);
         break;
     }
@@ -91,7 +91,7 @@ void UiTreeView::askNew() {
     if(canOpen) {
         if((!currentDocument) || ((currentDocument) && (currentDocument->askForClose(currentDocument)))) {
             QList<UiSyncItem*> items = getSelection(false);
-            foreach(UiSyncItem* item, items) {
+            for (UiSyncItem *item : items) {
                 UiSyncItem *newItem = item->askForNewChild(item, false);
                 if((newItem) && (newItem->askForOpen(newItem))) {
                     currentDocument = newItem;
@@ -103,7 +103,7 @@ void UiTreeView::askNew() {
     }
     else {
         QList<UiSyncItem*> items = getSelection(false);
-        foreach(UiSyncItem* item, items)
+        for (UiSyncItem *item : items)
             item->askForNewChild(item, false);
     }
 }
@@ -113,7 +113,7 @@ void UiTreeView::askSave(bool as) {
 }
 void UiTreeView::askOpen() {
     if(canOpen) {
-        foreach(QTreeWidgetItem *item, ui->view->selectedItems()) {
+        for (QTreeWidgetItem *item : ui->view->selectedItems()) {
             UiSyncItem *syncItem = (UiSyncItem*)item;
             if((currentDocument) && (syncItem) && (currentDocument == syncItem))
                 currentDocument->askForOpen(currentDocument);
@@ -131,14 +131,14 @@ void UiTreeView::askOpen() {
 }
 void UiTreeView::askNewRoot() {
     QList<UiSyncItem*> items = getSelection();
-    foreach(UiSyncItem* item, items) {
+    for (UiSyncItem *item : items) {
         if(item->askForNewChild(item, true))
             break;
     }
 }
 void UiTreeView::askRemove() {
     QList<UiSyncItem*> items = getSelection();
-    foreach(UiSyncItem* item, items)
+    for (UiSyncItem *item : items)
         if(item->parentItem)
             if((item->askForDeletion(item, true)) && (currentDocument == item))
                 currentDocument = 0;
@@ -147,7 +147,7 @@ void UiTreeView::askCopy() {
     selectionClipboard = getSelection();
 }
 void UiTreeView::askPaste() {
-    foreach(QTreeWidgetItem *item, ui->view->selectedItems()) {
+    for (QTreeWidgetItem *item : ui->view->selectedItems()) {
         if(((UiSyncItem*)item)->askForPaste((UiSyncItem*)item, selectionClipboard))
             break;
     }

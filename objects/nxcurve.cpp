@@ -552,7 +552,7 @@ void NxCurve::setSVG2(const QString & polylineData) {
 
     QStringList tokens = polylineData.split(" ", Qt::SkipEmptyParts);
     quint16 index = 0;
-    foreach(const QString & token, tokens) {
+    for (const QString & token : tokens) {
         QStringList tokenParams = token.split(",", Qt::SkipEmptyParts);
         if(tokenParams.count() == 2)
             setPointAt(index++, NxPoint(tokenParams.at(0).toDouble(), tokenParams.at(1).toDouble()), NxPoint(), NxPoint(), false);
@@ -780,7 +780,7 @@ NxPoint NxCurve::getAngleAt(qreal val, bool absoluteTime) {
 
 void NxCurve::calcBoundingRect() {
     bool calculatePathLength = false;
-    foreach(NxObject *cursor, cursors)
+    for (NxObject *cursor : cursors)
         if(!cursor->getLockPathLength()) {
             calculatePathLength = true;
             break;
@@ -1006,7 +1006,7 @@ void NxCurve::resample(quint16 nbPoints, bool smooth, bool triggers) {
     for(qreal percent = 0 ; percent <= 1 ; percent += percentStep)
         pts.append(getPointAt(percent));
     if(triggers) {
-        foreach(NxPoint pt, pts) {
+        for (NxPoint pt : pts) {
             pt += pos;
             Application::current->execute("add trigger auto", ExecuteSourceGui);
             Application::current->execute(QString("%1 current %2 %3 %4").arg(COMMAND_POS).arg(pt.x()).arg(pt.y()).arg(pt.z()), ExecuteSourceGui);

@@ -59,6 +59,7 @@ Q_DECLARE_METATYPE(QList<qreal>)
 
 class NxCurve : public NxObject {
     Q_OBJECT
+    Q_DISABLE_COPY(NxCurve)
 
     Q_PROPERTY(CurveType curveType            READ getCurveType)
 
@@ -346,7 +347,7 @@ public:
         else
             dragParent(translation);
 
-        foreach(NxObject *object, cursors)
+        for (NxObject *object : cursors)
             object->calculate();
     }
 
@@ -443,7 +444,7 @@ public:
         resize(sizeF, sizeF);
         calcBoundingRect();
         calculate();
-        foreach(NxObject *object, cursors)
+        for (NxObject *object : cursors)
             object->calculate();
     }
     inline qreal getResizeF() const {
@@ -452,7 +453,7 @@ public:
 
 public:
     inline void calculate() {
-        foreach(NxObject *object, cursors)
+        for (NxObject *object : cursors)
             object->calculate();
     }
     void calcBoundingRect();

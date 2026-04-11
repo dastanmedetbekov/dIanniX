@@ -381,7 +381,7 @@ void UiRender::paintGL() {
 
             //Draw objects
             //Browse groups
-            foreach(NxGroup *group, documentToRender->groups) {
+            for (NxGroup *group : documentToRender->groups) {
                 glPushMatrix();
 
                 //Group specific
@@ -404,7 +404,7 @@ void UiRender::paintGL() {
                     //Browse all types of objects
                     for(quint16 typeIterator = 0 ; typeIterator < ObjectsTypeLength ; typeIterator++) {
                         //Browse objects
-                        foreach(NxObject *object, group->objects[activityIterator][typeIterator]) {
+                        for (NxObject *object : group->objects[activityIterator][typeIterator]) {
                             //Draw the object
                             bool oldPaintThisGroup = Render::paintThisGroup;
                             if(!(((!Application::current->isObjectSoloActive) && (object->isNotMuted())) || ((Application::current->isObjectSoloActive) && (object->isSolo()))))
@@ -700,7 +700,7 @@ void UiRender::mousePressEvent(QMouseEvent *event) {
 
     //Start area selection
     if((Render::editing) && (Application::allowSelection)) {
-        foreach(NxObject *selected, selection)
+        for (NxObject *selected : selection)
             selected->setSelected(false);
         selection.clear();
         //selectedHover->setSelected(true);   /// select this one
@@ -726,7 +726,7 @@ void UiRender::mousePressEvent(QMouseEvent *event) {
     }
     /*
     else if(!Application::allowSelection) {
-        foreach(NxObject *selected, selection)
+        for (NxObject *selected : selection)
             selected->setSelected(false);
         selection.clear();
         if(selectedHover) {
@@ -743,7 +743,7 @@ void UiRender::mousePressEvent(QMouseEvent *event) {
                 setCursor(Qt::CrossCursor);
         } else if (selectedHover) {
             if (!selectedHover->getSelected()) {
-                foreach(NxObject *selected, selection)
+                for (NxObject *selected : selection)
                     selected->setSelected(false);
                 selection.clear();
                 selectedHover->setSelected(true);
@@ -766,12 +766,12 @@ void UiRender::mouseReleaseEvent(QMouseEvent *event) {
     }
     else if((cursor().shape() != Qt::BlankCursor) && (Application::allowSelection)) {
         //Copy area selection
-        foreach(NxObject *selected, selectionRect)
+        for (NxObject *selected : selectionRect)
             selectionAdd(selected);
         selectionRect.clear();
 
         //End of drag
-        foreach(NxObject* object, selection)
+        for (NxObject *object : selection)
             object->dragStop();
         if(selectedHover)
             selectedHover->dragStop();
@@ -861,7 +861,7 @@ void UiRender::mouseMoveEvent(QMouseEvent *event) {
                             changeStatus(tr("Duplicated selection (Ctrl+drag)"));
                     }
 
-                    foreach(NxObject* object, selection)
+                    for (NxObject *object : selection)
                         object->dragStart(mousePos, selection.count() > 1);
                 }
                 NxPoint dragTranslation = mousePos - mousePressedAreaPos;
@@ -869,7 +869,7 @@ void UiRender::mouseMoveEvent(QMouseEvent *event) {
                     if(Application::mouseSnapX)  dragTranslation.setX(qRound((selectedHover->getPosDrag().x() + dragTranslation.x()) / Render::axisGrid) * Render::axisGrid - selectedHover->getPosDrag().x());
                     if(Application::mouseSnapY)  dragTranslation.setY(qRound((selectedHover->getPosDrag().y() + dragTranslation.y()) / Render::axisGrid) * Render::axisGrid - selectedHover->getPosDrag().y());
                 }
-                foreach(NxObject* object, selection)
+                for (NxObject *object : selection)
                     object->drag(dragTranslation, mousePos, selection.count() > 1);
             }
             else if(!mouseObjectDrag) {
@@ -884,7 +884,7 @@ void UiRender::mouseMoveEvent(QMouseEvent *event) {
             UiRenderSelection eligibleSelection;
 
             //Browse documents
-            foreach(NxGroup *group, documentToRender->groups) {
+            for (NxGroup *group : documentToRender->groups) {
                 //Is groups visible ?
                 if((((!Application::current->isGroupSoloActive) && (group->isNotMuted())) || ((Application::current->isGroupSoloActive) && (group->isSolo())))) {
                     //Browse active/inactive objects
@@ -894,7 +894,7 @@ void UiRender::mouseMoveEvent(QMouseEvent *event) {
                             //Are objects visible ?
                             if(((typeIterator == ObjectsTypeCursor) && (Application::allowSelectionCursors)) || ((typeIterator == ObjectsTypeCurve) && (Application::allowSelectionCurves)) || ((typeIterator == ObjectsTypeTrigger) && (Application::allowSelectionTriggers))) {
                                 //Browse objects
-                                foreach(NxObject *object, group->objects[activityIterator][typeIterator]) {
+                                for (NxObject *object : group->objects[activityIterator][typeIterator]) {
                                     //Is Z visible ?
                                     if(((!Application::current->isObjectSoloActive) && (object->isNotMuted())) || ((Application::current->isObjectSoloActive) && (object->isSolo()))) {
                                         //Check selection
@@ -927,7 +927,7 @@ void UiRender::mouseMoveEvent(QMouseEvent *event) {
                     }
                 }
             }
-            foreach(NxObject *object, eligibleSelection) {
+            for (NxObject *object : eligibleSelection) {
                 bool selected = false;
                 if(object->getType() == ObjectsTypeCurve) {
                     NxCurve *curve = (NxCurve*)object;
@@ -1017,14 +1017,14 @@ bool UiRender::duplicateSelectionForDrag() {
     // Reuse the same serialization path as copy/paste so curve JS blocks
     // (points arrays/loops) are preserved when duplicating by drag.
     QString duplicateScript;
-    foreach(NxObject *object, selection) {
+    for (NxObject *object : selection) {
         if(object->getType() != ObjectsTypeCursor)
             duplicateScript += object->serialize();
     }
 
     // Cursor-only selection fallback.
     if(duplicateScript.isEmpty()) {
-        foreach(NxObject *object, selection)
+        for (NxObject *object : selection)
             duplicateScript += object->serialize();
     }
 
@@ -1046,12 +1046,12 @@ bool UiRender::duplicateSelectionForDrag() {
     if(newIds.isEmpty())
         return false;
 
-    foreach(NxObject *object, selection)
+    for (NxObject *object : selection)
         object->setSelected(false);
     selection.clear();
     selectedHover = 0;
 
-    foreach(const quint16 newId, newIds) {
+    for (const quint16 newId : newIds) {
         NxObject *newObject = (NxObject*)Application::current->getObjectById(newId);
         if(newObject) {
             selectionAdd(newObject);
@@ -1069,7 +1069,7 @@ void UiRender::triggerSelectedTriggers(int repeatCount) {
         repeatCount = 1;
 
     for(int repeat = 0; repeat < repeatCount; repeat++) {
-        foreach(NxObject *object, selection) {
+        for (NxObject *object : selection) {
             if(object->getType() == ObjectsTypeTrigger)
                 Application::current->execute(QString("%1 %2").arg(COMMAND_TRIG).arg(object->getId()), ExecuteSourceGui);
         }
@@ -1211,7 +1211,7 @@ void UiRender::keyPressEvent(QKeyEvent *event) {
                 // Change velocity for all selected triggers
                 // NOTE: This switches from DYNAMIC to FIXED velocity
                 bool hadDynamicVelocity = false;
-                foreach(NxObject *object, selection) {
+                for (NxObject *object : selection) {
                     NxTrigger *trigger = (NxTrigger*)object;
                     QString currentMessage = trigger->getMessagePatternsStr();
                     
@@ -1257,7 +1257,7 @@ void UiRender::keyPressEvent(QKeyEvent *event) {
                 // Show average velocity across all selected triggers
                 int avgVelocity = 0;
                 int count = 0;
-                foreach(NxObject *object, selection) {
+                for (NxObject *object : selection) {
                     NxTrigger *trigger = (NxTrigger*)object;
                     QString msg = trigger->getMessagePatternsStr();
                     if(msg.contains("midi://")) {
@@ -1304,7 +1304,7 @@ void UiRender::keyPressEvent(QKeyEvent *event) {
                 // Change duration for all selected triggers
                 // NOTE: This switches from DYNAMIC to FIXED duration
                 bool hadDynamicDuration = false;
-                foreach(NxObject *object, selection) {
+                for (NxObject *object : selection) {
                     NxTrigger *trigger = (NxTrigger*)object;
                     QString currentMessage = trigger->getMessagePatternsStr();
                     
@@ -1354,7 +1354,7 @@ void UiRender::keyPressEvent(QKeyEvent *event) {
                 // Show average duration across all selected triggers
                 int avgDuration = 0;
                 int count = 0;
-                foreach(NxObject *object, selection) {
+                for (NxObject *object : selection) {
                     NxTrigger *trigger = (NxTrigger*)object;
                     QString msg = trigger->getMessagePatternsStr();
                     if(msg.contains("midi://")) {
@@ -1404,7 +1404,7 @@ void UiRender::keyPressEvent(QKeyEvent *event) {
                     Application::current->pushSnapshot();
                     
                     // Apply to each trigger individually, preserving its own parameters
-                    foreach(NxObject *object, selection) {
+                    for (NxObject *object : selection) {
                         NxTrigger *trigger = (NxTrigger*)object;
                         QString currentMessage = trigger->getMessagePatternsStr();
                         
@@ -1569,9 +1569,9 @@ void UiRender::dropEvent(QDropEvent *event) {
 
 void UiRender::selectionClear(bool hoverAlso) {
     //Clear selection
-    foreach(NxObject *selected, selection)
+    for (NxObject *selected : selection)
         selected->setSelected(false);
-    foreach(NxObject *selected, selectionRect)
+    for (NxObject *selected : selectionRect)
         selected->setSelected(false);
     selection.clear();
     if(hoverAlso) {
@@ -1622,9 +1622,9 @@ void UiRender::actionCut() {
     Application::current->pushSnapshot();
     emit(actionRouteCopy());
     QStringList commands;
-    foreach(NxObject *object, selection)
+    for (NxObject *object : selection)
         commands << QString(COMMAND_REMOVE) + " " + QString::number(object->getId()) + COMMAND_END;
-    foreach(const QString & command, commands)
+    for (const QString & command : commands)
         Application::current->execute(command, ExecuteSourceCopyPaste);
 }
 
@@ -1633,7 +1633,7 @@ void UiRender::actionSelect_all() {
         selectionClear();
 
         //Browse documents
-        foreach(NxGroup *group, documentToRender->groups) {
+        for (NxGroup *group : documentToRender->groups) {
             //Is groups visible ?
             if((((!Application::current->isGroupSoloActive) && (group->isNotMuted())) || ((Application::current->isGroupSoloActive) && (group->isSolo())))) {
 
@@ -1646,7 +1646,7 @@ void UiRender::actionSelect_all() {
                         //Are objects visible ?
                         if(((typeIterator == ObjectsTypeCursor) && (Application::allowSelectionCursors)) || ((typeIterator == ObjectsTypeCurve) && (Application::allowSelectionCurves)) || ((typeIterator == ObjectsTypeTrigger) && (Application::allowSelectionTriggers))) {
                             //Browse objects
-                            foreach(NxObject *object, group->objects[activityIterator][typeIterator]) {
+                            for (NxObject *object : group->objects[activityIterator][typeIterator]) {
                                 //Is Z visible ?
                                 if(((!Application::current->isObjectSoloActive) && (object->isNotMuted())) || ((Application::current->isObjectSoloActive) && (object->isSolo()))) {
 
@@ -1670,11 +1670,11 @@ void UiRender::actionDelete() {
         selectedHover = 0;
     }
     else {
-        foreach(NxObject *object, selection)
+        for (NxObject *object : selection)
             commands << QString(COMMAND_REMOVE) + " " + QString::number(object->getId());
         selectionClear();
         selectedHover = 0;
-        foreach(const QString & command, commands)
+        for (const QString & command : commands)
             Application::current->execute(command, ExecuteSourceGui);
     }
 }
@@ -1721,7 +1721,7 @@ void UiRender::arrangeObjects(quint16 type) {
 
     if(type == 0) {
         //Top
-        foreach(NxObject *object, selection)
+        for (NxObject *object : selection)
             if(object->getType() == ObjectsTypeCurve)
                 arrangeObjects(object, NxPoint(object->getPos().x(), object->getPos().y() + top-qMax(object->getBoundingRect().top(), object->getBoundingRect().bottom()), object->getPos().z()));
             else if(object->getType() == ObjectsTypeTrigger)
@@ -1729,7 +1729,7 @@ void UiRender::arrangeObjects(quint16 type) {
     }
     else if(type == 1) {
         //Left
-        foreach(NxObject *object, selection)
+        for (NxObject *object : selection)
             if(object->getType() == ObjectsTypeCurve)
                 arrangeObjects(object, NxPoint(object->getPos().x() + left-qMin(object->getBoundingRect().left(), object->getBoundingRect().right()), object->getPos().y(), object->getPos().z()));
             else if(object->getType() == ObjectsTypeTrigger)
@@ -1737,7 +1737,7 @@ void UiRender::arrangeObjects(quint16 type) {
     }
     else if(type == 2) {
         //Bottom
-        foreach(NxObject *object, selection)
+        for (NxObject *object : selection)
             if(object->getType() == ObjectsTypeCurve)
                 arrangeObjects(object, NxPoint(object->getPos().x(), object->getPos().y() + bottom-qMin(object->getBoundingRect().top(), object->getBoundingRect().bottom()), object->getPos().z()));
             else if(object->getType() == ObjectsTypeTrigger)
@@ -1745,7 +1745,7 @@ void UiRender::arrangeObjects(quint16 type) {
     }
     else if(type == 3) {
         //Right
-        foreach(NxObject *object, selection)
+        for (NxObject *object : selection)
             if(object->getType() == ObjectsTypeCurve)
                 arrangeObjects(object, NxPoint(object->getPos().x() + right-qMax(object->getBoundingRect().left(), object->getBoundingRect().right()), object->getPos().y(), object->getPos().z()));
             else if(object->getType() == ObjectsTypeTrigger)
@@ -1753,7 +1753,7 @@ void UiRender::arrangeObjects(quint16 type) {
     }
     else if(type == 4) {
         //Middle
-        foreach(NxObject *object, selection)
+        for (NxObject *object : selection)
             if(object->getType() == ObjectsTypeCurve)
                 arrangeObjects(object, NxPoint(object->getPos().x(), object->getPos().y() + middle-object->getBoundingRect().center().y(), object->getPos().z()));
             else if(object->getType() == ObjectsTypeTrigger)
@@ -1761,7 +1761,7 @@ void UiRender::arrangeObjects(quint16 type) {
     }
     else if(type == 5) {
         //Center
-        foreach(NxObject *object, selection)
+        for (NxObject *object : selection)
             if(object->getType() == ObjectsTypeCurve)
                 arrangeObjects(object, NxPoint(object->getPos().x() + middle-object->getBoundingRect().center().x(), object->getPos().y(), object->getPos().z()));
             else if(object->getType() == ObjectsTypeTrigger)
@@ -1771,7 +1771,7 @@ void UiRender::arrangeObjects(quint16 type) {
         //Distrib H
         qreal dHStep = qAbs(dright-dleft) / (nbObj-1);
         nbObj = 0;
-        foreach(NxObject *object, selection)
+        for (NxObject *object : selection)
             if(object->getType() == ObjectsTypeCurve) {
                 arrangeObjects(object, NxPoint(object->getPos().x() + (dleft + nbObj * dHStep)-object->getBoundingRect().center().x(), object->getPos().y(), object->getPos().z()));
                 nbObj++;
@@ -1785,7 +1785,7 @@ void UiRender::arrangeObjects(quint16 type) {
         //Distrib V
         qreal dVStep = qAbs(dtop-dbottom) / (nbObj-1);
         nbObj = 0;
-        foreach(NxObject *object, selection)
+        for (NxObject *object : selection)
             if(object->getType() == ObjectsTypeCurve) {
                 arrangeObjects(object, NxPoint(object->getPos().x(), object->getPos().y() + (dbottom + nbObj * dVStep)-object->getBoundingRect().center().y(), object->getPos().z()));
                 nbObj++;
@@ -1799,7 +1799,7 @@ void UiRender::arrangeObjects(quint16 type) {
         //Distrib Circle
         qreal dAngle = 2 * M_PI / nbObj;
         nbObj = 0;
-        foreach(NxObject *object, selection)
+        for (NxObject *object : selection)
             if(object->getType() == ObjectsTypeCurve) {
                 arrangeObjects(object, NxPoint(object->getPos().x() + (center + qMax(width,height)*qCos(dAngle * nbObj))-object->getBoundingRect().center().x(), object->getPos().y() + (middle + qMax(width,height)*qSin(dAngle * nbObj))-object->getBoundingRect().center().y(), object->getPos().z()));
                 nbObj++;
@@ -1813,7 +1813,7 @@ void UiRender::arrangeObjects(quint16 type) {
         //Distrib Ellipse
         qreal dAngle = 2 * M_PI / nbObj;
         nbObj = 0;
-        foreach(NxObject *object, selection)
+        for (NxObject *object : selection)
             if(object->getType() == ObjectsTypeCurve) {
                 arrangeObjects(object, NxPoint(object->getPos().x() + (center + width*qCos(dAngle * nbObj))-object->getBoundingRect().center().x(), object->getPos().y() + (middle + height*qSin(dAngle * nbObj))-object->getBoundingRect().center().y(), object->getPos().z()));
                 nbObj++;
@@ -1834,7 +1834,7 @@ void UiRender::renderText(qreal x, qreal y, qreal z, const QString &text, const 
         OpenGlTexture::textures.append(texte);
     }
     OpenGlTexture *textTextureToUse = 0;
-    foreach(OpenGlTexture *textTexture, OpenGlTexture::textures)
+    for (OpenGlTexture *textTexture : OpenGlTexture::textures)
         if(textTexture->texte == text) {
             textTextureToUse = textTexture;
             break;

@@ -78,7 +78,7 @@ const QList<ExtScriptVariable*> & ExtScriptVariableAsk::ask() {
         ui->variablesList->expandAll();
         setWindowTitle(title);
         exec();
-        foreach(ExtScriptVariable *variable, variables)
+        for (ExtScriptVariable *variable : variables)
             variable->setDef(variable->text(1));
     }
     else

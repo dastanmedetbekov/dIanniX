@@ -222,13 +222,13 @@ void UiReal::setAction(QComboBox *_comboBox, const QString &_settingName, bool t
 }
 void UiReal::setAction(const QList<QRadioButton*> &_radios, const QString &_settingName, bool trigEvent, bool changeUi) {
     UiOptions::add(this, _settingName);
-    foreach(QRadioButton *radio, radios)
+    for (QRadioButton *radio : radios)
         radio->disconnect(this, SLOT(guiTrigged(qreal)));
     radios = _radios;
     if(radios.count()) {
         if(changeUi)
             applyToGui();
-        foreach(QRadioButton *radio, radios)
+        for (QRadioButton *radio : radios)
             radio->connect(radio, SIGNAL(toggled(bool)), this, SLOT(guiTrigged(bool)));
 
         if(trigEvent) {

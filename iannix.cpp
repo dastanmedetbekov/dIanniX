@@ -184,7 +184,7 @@ IanniX::IanniX(const QString &_projectToLoad, QObject *parent) :
         iniSettings = new QSettings(settingsFilename, QSettings::IniFormat);
 
         //UiOptions
-        foreach(UiOption *option, UiOptions::options)
+        for (UiOption *option : UiOptions::options)
             iniSettings->setValue(option->settingName, option->variant());
 
         //Colors
@@ -207,7 +207,7 @@ IanniX::IanniX(const QString &_projectToLoad, QObject *parent) :
         QString iniAppVersion = iniSettings->value("appVersion").toString();
         if(iniAppVersion == QApplication::applicationVersion()) {
             //UiOptions
-            foreach(UiOption *option, UiOptions::options)
+            for (UiOption *option : UiOptions::options)
                 if(iniSettings->childKeys().contains(option->settingName))
                     option->setVariant(iniSettings->value(option->settingName));
         }
@@ -600,18 +600,18 @@ void IanniX::actionCC(QTreeWidgetItem *item, int col) {
         quint16 centerCounter = 0;
 
         render->selectionClear(true);
-        foreach(NxObject* object, elements.second) {
+        for (NxObject *object : elements.second) {
             render->selectionAdd(object);
             center += object->getPos();
             centerCounter++;
         }
-        foreach(const NxGroup* group, elements.first) {
+        for (const NxGroup* group : elements.first) {
             //Browse active/inactive objects
             for(quint16 activityIterator = 0 ; activityIterator < ObjectsActivityLenght ; activityIterator++) {
                 //Browse all types of objects
                 for(quint16 typeIterator = 0 ; typeIterator < ObjectsTypeLength ; typeIterator++) {
                     //Browse objects
-                    foreach(NxObject *object, group->objects[activityIterator][typeIterator]) {
+                    for (NxObject *object : group->objects[activityIterator][typeIterator]) {
                         render->selectionAdd(object);
                         center += object->getPos();
                         centerCounter++;
@@ -633,7 +633,7 @@ void IanniX::actionCC(QTreeWidgetItem *item, int col) {
                 isGroupSoloActive = true;
                 break;
             }
-        foreach(const NxGroup* group, getCurrentDocument()->groups) {
+        for (const NxGroup* group : getCurrentDocument()->groups) {
             //Browse active/inactive objects
             for(quint16 activityIterator = 0 ; activityIterator < ObjectsActivityLenght ; activityIterator++) {
                 //Browse all types of objects
@@ -778,7 +778,7 @@ quint16 IanniX::getCount(qint8 objectType) {
         if(objectType == -2)
             return document->groups.count();
         else
-            foreach(NxGroup *group, document->groups)
+            for (NxGroup *group : document->groups)
                 count += group->getCount(objectType);
     }
     return count;
@@ -804,7 +804,7 @@ void IanniX::removeObject(NxObject *object) {
             QStringList commands;
             foreach(const NxObject *object, curve->getCursors())
                 commands << QString(COMMAND_REMOVE) + " " + QString::number(object->getId()) + COMMAND_END;
-            foreach(const QString & command, commands)
+            for (const QString & command : commands)
                 execute(command, ExecuteSourceSystem);
         }
         else if(object->getType() == ObjectsTypeCursor) {
@@ -1140,9 +1140,9 @@ const QVariant IanniX::execute(const QString &command, ExecuteSource source, boo
                 if((commande == COMMAND_MESSAGE) && (argv.at(1).toLower() == "triggers")) {
                     if(argc > 2) {
                         const QString messageValue = argvFullString(command, argv, 2);
-                        foreach(NxGroup *group, document->groups)
+                        for (NxGroup *group : document->groups)
                             for(quint16 activityIterator = 0 ; activityIterator < ObjectsActivityLenght ; activityIterator++)
-                                foreach(NxObject *object, group->objects[activityIterator][ObjectsTypeTrigger])
+                                for (NxObject *object : group->objects[activityIterator][ObjectsTypeTrigger])
                                     object->dispatchProperty(COMMAND_MESSAGE, messageValue);
                     }
                     return true;
@@ -1281,36 +1281,36 @@ void IanniX::actionReloadScript() {
 }
 
 void IanniX::actionUnmuteGroups() {
-    foreach(NxGroup *group, getCurrentDocument()->groups)
+    for (NxGroup *group : getCurrentDocument()->groups)
         if(group->isMuted())
             group->setMute(0);
 }
 void IanniX::actionUnmuteObjects() {
     //Browse documents
-    foreach(NxGroup *group, getCurrentDocument()->groups)
+    for (NxGroup *group : getCurrentDocument()->groups)
         //Browse active/inactive objects
         for(quint16 activityIterator = 0 ; activityIterator < ObjectsActivityLenght ; activityIterator++)
             //Browse all types of objects
             for(quint16 typeIterator = 0 ; typeIterator < ObjectsTypeLength ; typeIterator++)
                 //Browse objects
-                foreach(NxObject *object, group->objects[activityIterator][typeIterator])
+                for (NxObject *object : group->objects[activityIterator][typeIterator])
                     if(object->isMuted())
                         object->setMute(0);
 }
 void IanniX::actionUnsoloGroups() {
-    foreach(NxGroup *group, getCurrentDocument()->groups)
+    for (NxGroup *group : getCurrentDocument()->groups)
         if(group->isSolo())
             group->setSolo(0);
 }
 void IanniX::actionUnsoloObjects() {
     //Browse documents
-    foreach(NxGroup *group, getCurrentDocument()->groups)
+    for (NxGroup *group : getCurrentDocument()->groups)
         //Browse active/inactive objects
         for(quint16 activityIterator = 0 ; activityIterator < ObjectsActivityLenght ; activityIterator++)
             //Browse all types of objects
             for(quint16 typeIterator = 0 ; typeIterator < ObjectsTypeLength ; typeIterator++)
                 //Browse objects
-                foreach(NxObject *object, group->objects[activityIterator][typeIterator])
+                for (NxObject *object : group->objects[activityIterator][typeIterator])
                     if(object->isSolo())
                         object->setSolo(0);
 }
@@ -1339,7 +1339,7 @@ void IanniX::actionCloseEvent(QCloseEvent *event) {
             if(currentProject.exists() && currentProject.isFile())
                 iniSettings->setValue("lastProject", currentProject.absoluteFilePath());
         }
-        foreach(UiOption *option, UiOptions::options)
+        for (UiOption *option : UiOptions::options)
             iniSettings->setValue(option->settingName, option->variant());
         iniSettings->setValue("appVersion", QApplication::applicationVersion());
     }
@@ -1384,7 +1384,7 @@ void IanniX::actionPaste() {
 void IanniX::actionCopy() {
     QString copy = "";
     NxObjectDispatchProperty::source = ExecuteSourceCopyPaste;
-    foreach(NxObject *object, *render->getSelection())
+    for (NxObject *object : *render->getSelection())
         if(object->getType() != ObjectsTypeCursor)
             copy += object->serialize();
 

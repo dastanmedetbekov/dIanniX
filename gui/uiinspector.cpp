@@ -1085,7 +1085,7 @@ void UiInspector::change(quint16 indexObject, QComboBox *spin, qint16 val, qint1
 }
 
 void UiInspector::colorComboAdd(QComboBox *spin, QStringList values) {
-    foreach(const QString & value, values) {
+    for (const QString & value : values) {
         QString colorName = value;
         QPixmap icon(32, 32);
         QColor color = Qt::gray;
@@ -1107,7 +1107,7 @@ void UiInspector::colorComboAdd(QComboBox *spin, QStringList values) {
     }
 }
 void UiInspector::textureComboAdd(QComboBox *spin, QStringList values) {
-    foreach(const QString & value, values) {
+    for (const QString & value : values) {
         if((value.isEmpty()) || (Render::textures->value(value)->loaded))
             spin->addItem(value);
     }
@@ -1119,7 +1119,7 @@ QTreeWidgetItem* UiInspector::getObjectRootItem() const {
 QPair< QList<NxGroup*>, UiRenderSelection> UiInspector::getSelectedCCObject() const {
     UiRenderSelection objects;
     QList<NxGroup*>  groups;
-    foreach(const QTreeWidgetItem* item, ui->ccView->selectedItems())
+    for (const QTreeWidgetItem* item : ui->ccView->selectedItems())
         if(item->text(0) == tr("GROUP"))     groups .append((NxGroup*) item);
         else                                 objects.append((NxObject*)item);
     return qMakePair(groups, objects);

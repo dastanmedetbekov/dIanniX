@@ -98,7 +98,7 @@ void NxTrigger::paint() {
             Application::render->renderText(cacheSize * 1.8, cacheSize * 1.8, 0, QString::number(id), Application::renderFont, false);
         if((selectedHover) && (!isDrag)) {
             qreal startY = 0.1 - cacheSize * 1.2;
-            foreach(const QString & messageLabelItem, messageLabel) {
+            for (const QString & messageLabelItem : messageLabel) {
                 Application::render->renderText(cacheSize * 1.8, startY, 0, messageLabelItem.trimmed(), Application::renderFont, false);
                 startY -= 0.2 * Render::zoomLinear;
             }
@@ -189,7 +189,7 @@ void NxTrigger::trigEnd() {
     cursorTrigged = 0;
     if(triggerOff > 0) {
         bool sendMessage = false;
-        foreach(const QVector<QByteArray> & messagePattern, this->getMessagePatterns()) {
+        for (const QVector<QByteArray> & messagePattern : this->getMessagePatterns()) {
             foreach(const QByteArray &messageArgument, messagePattern) {
                 if(messageArgument == "trigger_value")
                     sendMessage = true;

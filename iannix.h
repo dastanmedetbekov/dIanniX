@@ -64,6 +64,7 @@
 
 class IanniX : public ApplicationCurrent, public NxObjectDispatchProperty, public MessageDispatcher {
     Q_OBJECT
+    Q_DISABLE_COPY(IanniX)
 
 private:
     QSettings *iniSettings, *globalSettings;

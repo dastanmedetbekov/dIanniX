@@ -62,7 +62,7 @@ const QString NxGroup::serialize() const {
         //Browse all types of objects
         for(quint16 typeIterator = 0 ; typeIterator < ObjectsTypeLength ; typeIterator++) {
             //Browse objects
-            foreach(NxObject *object, objects[activityIterator][typeIterator]) {
+            for (NxObject *object : objects[activityIterator][typeIterator]) {
                 if(((typeIterator == ObjectsTypeCursor) && (((NxCursor*)object)->getCurve() == 0)) || (typeIterator == ObjectsTypeCurve) || (typeIterator == ObjectsTypeTrigger))
                     retour += object->serialize();
             }

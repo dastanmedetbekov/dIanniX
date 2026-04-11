@@ -100,7 +100,7 @@ bool UiTextureItems::askForDeletion(UiSyncItem *i, bool) {
     return true;
 }
 bool UiTextureItems::askForPaste(UiSyncItem*, const QList<UiSyncItem*> &listItems) {
-    foreach(UiSyncItem *listItem, listItems)
+    for (UiSyncItem *listItem : listItems)
         generateItem(listItem);
     dataChanged();
     return false;

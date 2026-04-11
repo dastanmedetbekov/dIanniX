@@ -65,7 +65,7 @@ void InterfaceUdp::parseOSC() {
             QString commands = bufferI;
             commands.replace(";", COMMAND_END);
             QStringList commandItems = commands.split(COMMAND_END, Qt::SkipEmptyParts);;
-            foreach(const QString & command, commandItems)
+            for (const QString & command : commandItems)
                 MessageManager::incomingMessage(MessageIncomming("udp", receivedHost.toString(), receivedPort, "", command, command.split(" ", Qt::SkipEmptyParts)));
         }
     }

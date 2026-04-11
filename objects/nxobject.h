@@ -46,6 +46,7 @@ enum ObjectsActivity { ObjectsActivityInactive=0, ObjectsActivityActive=1 };
 
 class NxObject : public QObject, public NxObjectDispatchProperty, public QTreeWidgetItem {
     Q_OBJECT
+    Q_DISABLE_COPY(NxObject)
 
     Q_PROPERTY(quint16 setid               READ getId                   WRITE setId)
     Q_PROPERTY(QString setline             READ getLineStr              WRITE setLineStr)
@@ -400,8 +401,8 @@ public slots:
     }
     inline const QString getMessagePatternsStr() const {
         QString messagePatternsStr;
-        foreach(const QVector<QByteArray> & messagePattern, messagePatterns) {
-            foreach(const QByteArray & messagePatternItem, messagePattern)
+        for (const QVector<QByteArray> & messagePattern : messagePatterns) {
+            for (const QByteArray & messagePatternItem : messagePattern)
                 messagePatternsStr += messagePatternItem + " ";
             messagePatternsStr += ", ";
         }

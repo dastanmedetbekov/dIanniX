@@ -91,7 +91,7 @@ bool UiColorItems::askForDeletion(UiSyncItem *i, bool) {
     return true;
 }
 bool UiColorItems::askForPaste(UiSyncItem*, const QList<UiSyncItem*> &listItems) {
-    foreach(UiSyncItem *listItem, listItems)
+    for (UiSyncItem *listItem : listItems)
         changes << generateItem(listItem)->name;
     dataChanged();
     return false;

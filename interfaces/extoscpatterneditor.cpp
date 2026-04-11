@@ -144,7 +144,7 @@ void ExtOscPatternEditor::setPattern(const QVector<QByteArray > & messagePattern
     bool first = true;
     quint16 valueIndex = 0;
     patternNbValues = trees.count();
-    foreach(const QByteArray & messagePatternItem, messagePatternItems) {
+    for (const QByteArray & messagePatternItem : messagePatternItems) {
         if(first) {
             QString messagePatternItemCpy = messagePatternItem.trimmed();
             messagePatternItemCpy.replace("port_out", "1");

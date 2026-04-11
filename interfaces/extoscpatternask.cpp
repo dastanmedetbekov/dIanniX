@@ -36,9 +36,9 @@ ExtOscPatternAsk::ExtOscPatternAsk(QWidget *parent, QList<NxObject *> *_objects)
     foreach(const NxObject *object, *objects) {
         if(object->getType() != ObjectsTypeCurve)
             onlyCurves = false;
-        foreach(const QVector<QByteArray> & messagePatternItems, object->getMessagePatterns()) {
+        for (const QVector<QByteArray> & messagePatternItems : object->getMessagePatterns()) {
             QString messagePattern;
-            foreach(const QByteArray & messagePatternItem, messagePatternItems)
+            for (const QByteArray & messagePatternItem : messagePatternItems)
                 messagePattern += messagePatternItem + " ";
             messagePattern = messagePattern.trimmed();
             if(!messagePatterns.contains(messagePattern)) {
@@ -102,7 +102,7 @@ void ExtOscPatternAsk::actionAddMessage() {
     QString messagePatternItem = Application::defaultMessage;
 
     QVector< QVector<QByteArray > > messagePatternItemsList = NxObject::parseMessagesPattern(messagePatternItem);
-    foreach(const QVector<QByteArray > & messagePatternItems, messagePatternItemsList) {
+    for (const QVector<QByteArray > & messagePatternItems : messagePatternItemsList) {
         ExtOscPatternEditor *patternEditor = new ExtOscPatternEditor(this);
         connect(patternEditor, SIGNAL(actionRouteFocus(QComboBox*,QPlainTextEdit*)), SLOT(actionFieldFocus(QComboBox*,QPlainTextEdit*)));
         ui->tabs->addTab(patternEditor, tr("Message %1").arg(ui->tabs->count()+1));

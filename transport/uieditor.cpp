@@ -157,7 +157,7 @@ void UiEditor::scriptError(const QStringList &errors, qint16 line) {
         ui->statusBar->setVisible(false);
     else {
         QString errorsMessage = "";
-        foreach(const QString & error, errors)
+        for (const QString & error : errors)
             errorsMessage += error + " - ";
 
         QTextCursor cursorLine = QTextCursor(ui->jsEditor->document()->findBlockByLineNumber(line-1));

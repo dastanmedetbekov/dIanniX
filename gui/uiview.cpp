@@ -482,7 +482,7 @@ void UiView::closeEvent(QCloseEvent *event) {
 }
 
 void UiView::fullscreenDisplaysCountChanged() {
-    foreach(QPushButton *fullscreenButton, fullscreenButtons)
+    for (QPushButton *fullscreenButton : fullscreenButtons)
         delete fullscreenButton;
     fullscreenButtons.clear();
 

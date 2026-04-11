@@ -62,35 +62,35 @@ void MessageManager::deleteNetworkInterface() {
 }
 
 void MessageManager::networkBundle(bool open) {
-    foreach(NetworkInterface *networkInterface, interfaces)
+    for (NetworkInterface *networkInterface : interfaces)
         networkInterface->networkBundle(open);
 }
 void MessageManager::networkManualParsing() {
-    foreach(NetworkInterface *networkInterface, interfaces)
+    for (NetworkInterface *networkInterface : interfaces)
         networkInterface->networkManualParsing();
 }
 void MessageManager::networkSynchro(bool start) {
-    foreach(NetworkInterface *networkInterface, interfaces) {
+    for (NetworkInterface *networkInterface : interfaces) {
         if(networkInterface != Application::synchroLoopGuard)
             networkInterface->networkSynchro(start);
     }
 }
 
 void MessageManager::logSend(const MessageLog &message, QStringList *sentMessage) {
-    foreach(MessageManagerLogInterface *log, logs)
+    for (MessageManagerLogInterface *log : logs)
         log->logSend(message, sentMessage);
 }
 void MessageManager::logReceive(const MessageLog &message, QStringList *sentMessage) {
-    foreach(MessageManagerLogInterface *log, logs)
+    for (MessageManagerLogInterface *log : logs)
         log->logReceive(message, sentMessage);
 }
 void MessageManager::logInfo(const QString &message) {
-    foreach(MessageManagerLogInterface *log, logs)
+    for (MessageManagerLogInterface *log : logs)
         log->logInfo(message);
 }
 QString MessageManager::incomingMessage(const MessageIncomming &source, bool needOutput, bool needToScript) {
     if(needToScript) {
-        foreach(MessageManagerLogInterface *log, logs)
+        for (MessageManagerLogInterface *log : logs)
             log->logReceive(source);
     }
     if(dispatcher)

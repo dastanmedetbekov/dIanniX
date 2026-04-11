@@ -95,7 +95,7 @@ void InterfaceHttp::webSocketsProcessMessage(const QString &message) {
     if(webSocket) {
         QStringList commandItems = message.split(COMMAND_END, Qt::SkipEmptyParts);;
         QString response;
-        foreach(const QString & command, commandItems)
+        for (const QString & command : commandItems)
             response += MessageManager::incomingMessage(MessageIncomming("http", webSocket->peerAddress().toString(), webSocket->peerPort(), "", command, command.split(" ", Qt::SkipEmptyParts)), true, (command != "goto"));
         if(!response.isEmpty())
             webSocket->send(response);
@@ -116,7 +116,7 @@ void InterfaceHttp::webSocketsSocketDisconnected() {
 }
 void InterfaceHttp::webSocketsUpdateConnectedClients() {
     QString clientsWebSockets;
-    foreach(WebSocket *webSocket, webSocketClients)
+    for (WebSocket *webSocket : webSocketClients)
         clientsWebSockets += QString("%1:%2\n").arg(webSocket->peerAddress().toString()).arg(webSocket->peerPort());
     clientsWebSockets.chop(1);
     if(webSocketClients.count() == 0)        ui->clientsWebSockets->setText(tr("No websocket connected"));
@@ -152,7 +152,7 @@ void InterfaceHttp::parseRequest(QNetworkReply *reply) {
         return;
 
     QStringList commandItems = QString(reply->readAll()).split(COMMAND_END, Qt::SkipEmptyParts);;
-    foreach(const QString & command, commandItems)
+    for (const QString & command : commandItems)
         MessageManager::incomingMessage(MessageIncomming("http", reply->url().host(), reply->url().port(), reply->url().path(), command, command.split(" ", Qt::SkipEmptyParts)));
 }
 
@@ -214,7 +214,7 @@ void InterfaceHttp::parseSocket(QTcpSocket *socket) {
                   "\r\n";
 
             QString response;
-            foreach(const QString & command, commands)
+            for (const QString & command : commands)
                 response += MessageManager::incomingMessage(MessageIncomming("http", socket->peerAddress().toString(), socket->peerPort(), url.path(), command, command.split(" ", Qt::SkipEmptyParts)), true, (command != "goto")) + "\n";
 
             os << response;

@@ -319,7 +319,7 @@ void NxCursor::paint() {
                 Application::render->renderText(cursorPos.x() + 0.2, cursorPos.y() + 0.2, cursorPos.z(), QString::number(id), Application::renderFont, true);
             if((selectedHover) && (!isDrag)) {
                 qreal startY = -0.1;
-                foreach(const QString & messageLabelItem, messageLabel) {
+                for (const QString & messageLabelItem : messageLabel) {
                     Application::render->renderText(cursorPos.x() + 0.2, cursorPos.y() + startY, cursorPos.z(), messageLabelItem.trimmed(), Application::renderFont, true);
                     startY -= 0.2 * Render::zoomLinear;
                 }

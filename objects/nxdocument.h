@@ -39,6 +39,7 @@
 
 class NxDocument : public QObject, public QTreeWidgetItem, public MessageDispatcher, public NxObjectDispatchProperty {
     Q_OBJECT
+    Q_DISABLE_COPY(NxDocument)
 
 public:
     ExecuteSource source;
@@ -66,7 +67,7 @@ public:
         QStringList commands;
         foreach(const NxObject *object, objects)
             commands << QString(COMMAND_REMOVE) + " " + QString::number(object->getId());
-        foreach(const QString & command, commands)
+        for (const QString & command : commands)
             Application::current->execute(command, ExecuteSourceCopyPaste);
     }
 
@@ -179,11 +180,11 @@ public:
 public:
     inline void dispatchProperty(const char *_property, const QVariant & value) {
         //Browse groups
-        foreach(NxGroup *group, groups)
+        for (NxGroup *group : groups)
             group->dispatchProperty(_property, value);
     }
     inline const QVariant getProperty(const char *_property) const {
-        foreach(NxGroup *group, groups)
+        for (NxGroup *group : groups)
             return group->getProperty(_property);
         return QVariant();
     }

@@ -43,6 +43,7 @@
 
 class NxCursor : public NxObject, public NxCursorAbstraction {
     Q_OBJECT
+    Q_DISABLE_COPY(NxCursor)
 
     Q_PROPERTY(QString setoffset            READ getOffset             WRITE setOffset)
     Q_PROPERTY(QString setpattern           READ getStart              WRITE setStart)
@@ -190,7 +191,7 @@ public:
             setNbLoop(0);
             setTime(0);
             start.clear();
-            foreach(const QString & startItem, startItems) {
+            for (const QString & startItem : startItems) {
                 bool valOk = false;
                 qreal val = startItem.toDouble(&valOk);
                 if(valOk)
@@ -202,7 +203,7 @@ public:
     }
     inline const QString getStart() const {
         QString retour;
-        foreach(const qreal startItem, start)
+        for (const qreal startItem : start)
             retour += QString::number(startItem) + " ";
         return (QString("%1 0 %2").arg(getEasing()).arg(retour)).trimmed();
     }

@@ -391,7 +391,7 @@ void InterfaceMidi::sendSPPStart() {
     std::vector<unsigned char> message;
     message.push_back(MIDI_CONTINUE);
     if(message.size() > 0) {
-        foreach(RtMidiOut *port, portOut) {
+        for (RtMidiOut *port : portOut) {
             if(port && port->isPortOpen()) {
                 try {
                     port->sendMessage(&message);
@@ -406,7 +406,7 @@ void InterfaceMidi::sendSPPStop() {
     std::vector<unsigned char> message;
     message.push_back(MIDI_STOP);
     if(message.size() > 0) {
-        foreach(RtMidiOut *port, portOut) {
+        for (RtMidiOut *port : portOut) {
             if(port && port->isPortOpen()) {
                 try {
                     port->sendMessage(&message);
@@ -426,7 +426,7 @@ void InterfaceMidi::sendSPPTime(qreal time) {
     message.push_back(val1);
     message.push_back(val2);
     if(message.size() > 0) {
-        foreach(RtMidiOut *port, portOut) {
+        for (RtMidiOut *port : portOut) {
             if(port && port->isPortOpen()) {
                 try {
                     port->sendMessage(&message);
@@ -544,7 +544,7 @@ qreal ExtMidiMTC::decode(quint16 msg) {
 }
 
 void InterfaceMidi::clear() {
-    foreach(RtMidiIn  *port, portIn) {
+    for (RtMidiIn *port : portIn) {
         if(port) {
             try {
                 if(port->isPortOpen())
@@ -557,7 +557,7 @@ void InterfaceMidi::clear() {
         }
     }
     portIn.clear();
-    foreach(RtMidiOut *port, portOut) {
+    for (RtMidiOut *port : portOut) {
         if(port) {
             try {
                 if(port->isPortOpen())

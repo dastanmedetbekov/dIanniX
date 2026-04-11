@@ -30,6 +30,7 @@
 
 class NxTrigger : public NxObject {
     Q_OBJECT
+    Q_DISABLE_COPY(NxTrigger)
 
     Q_PROPERTY(QString settextureactive   READ getTextureActive   WRITE setTextureActive)
     Q_PROPERTY(QString settextureinactive READ getTextureInactive WRITE setTextureInactive)

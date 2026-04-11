@@ -92,7 +92,7 @@ bool InterfaceTcpServer::send(const Message &message, QStringList *messageSent) 
     }
 
     //Send request
-    foreach(QTcpSocket *socket, sockets) {
+    for (QTcpSocket *socket : sockets) {
         socket->write(bytes);
         socket->flush();
 
@@ -187,7 +187,7 @@ void InterfaceTcpServer::discardClient() {
 
 void InterfaceTcp::updateConnectedClients() {
     QString clients;
-    foreach(QTcpSocket *socket, tcpServer->sockets)
+    for (QTcpSocket *socket : tcpServer->sockets)
         clients += QString("%1:%2\n").arg(socket->peerAddress().toString()).arg(socket->peerPort());
     clients.chop(1);
     if(tcpServer->sockets.count() == 0)        ui->clients->setText(tr("No client connected"));

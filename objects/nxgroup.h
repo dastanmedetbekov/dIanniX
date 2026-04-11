@@ -32,6 +32,7 @@
 
 class NxGroup : public QObject, public NxObjectDispatchProperty, public QTreeWidgetItem {
     Q_OBJECT
+    Q_DISABLE_COPY(NxGroup)
 
     Q_PROPERTY(quint16 setmute READ getMute WRITE setMute)
     Q_PROPERTY(quint16 setsolo READ getSolo WRITE setSolo)
@@ -44,7 +45,7 @@ public:
             //Browse all types of objects
             for(quint16 typeIterator = 0 ; typeIterator < ObjectsTypeLength ; typeIterator++)
                 //Browse objects
-                foreach(NxObject *object, objects[activityIterator][typeIterator])
+                for (NxObject *object : objects[activityIterator][typeIterator])
                     object->dispatchProperty(_property, value);
     }
     inline const QVariant getProperty(const char *_property) const {
@@ -53,7 +54,7 @@ public:
             //Browse all types of objects
             for(quint16 typeIterator = 0 ; typeIterator < ObjectsTypeLength ; typeIterator++)
                 //Browse objects
-                foreach(NxObject *object, objects[activityIterator][typeIterator])
+                for (NxObject *object : objects[activityIterator][typeIterator])
                     return object->getProperty(_property);
         return QVariant();
     }
